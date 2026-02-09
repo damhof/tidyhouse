@@ -1,0 +1,14 @@
+services:
+  tidyhouse:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - tidyhouse-data:/data
+    environment:
+      - DATABASE_URL=/data/tidyhouse.db
+      - NODE_ENV=production
+    restart: unless-stopped
+
+volumes:
+  tidyhouse-data:
