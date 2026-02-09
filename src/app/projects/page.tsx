@@ -2,6 +2,7 @@ import { db } from '@/db';
 import { projects, projectTags, users } from '@/db/schema';
 import { desc } from 'drizzle-orm';
 import { CreateProjectButton } from '@/components/CreateProjectButton';
+import { ReviewButton } from '@/components/ReviewButton';
 import { KanbanBoard } from '@/components/KanbanBoard';
 
 export const dynamic = 'force-dynamic';
@@ -14,7 +15,10 @@ export default async function ProjectsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100">Projects</h1>
-        <CreateProjectButton />
+        <div className="flex items-center gap-2">
+          <ReviewButton />
+          <CreateProjectButton />
+        </div>
       </div>
 
       {allProjects.length === 0 ? (
