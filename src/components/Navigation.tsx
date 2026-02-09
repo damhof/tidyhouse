@@ -11,6 +11,7 @@ const navItems = [
 
 const secondaryItems = [
   { href: '/history', label: 'History', icon: '📊' },
+  { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 
 export function BottomNav() {

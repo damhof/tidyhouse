@@ -3,6 +3,7 @@
 import { useTheme } from './ThemeProvider';
 import { switchUser, updateUserName } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
 
 type UserInfo = { id: number; name: string; avatarEmoji: string };
@@ -59,6 +60,13 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
       <h1 className="text-lg font-semibold text-sage-600 dark:text-sage-400 md:hidden tracking-tight">🏡 TidyHouse</h1>
       <div className="hidden md:block" />
       <div className="flex items-center gap-2">
+        {/* Settings gear */}
+        <Link href="/settings"
+          className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 transition-all duration-200"
+          title="Settings">
+          ⚙️
+        </Link>
+
         {/* Theme toggle */}
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark')}
           className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 transition-all duration-200"
