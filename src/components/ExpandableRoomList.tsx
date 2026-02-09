@@ -155,7 +155,7 @@ function RoomCard({ room, isSelected, onClick }: { room: Room; isSelected: boole
         </div>
         <div className="text-[10px] text-neutral-400 font-medium">/ 100</div>
       </div>
-      <span className={`text-neutral-400 transition-transform duration-300 lg:hidden ${isSelected ? 'rotate-180' : ''}`}>
+      <span className={`text-neutral-400 transition-transform duration-300 md:hidden ${isSelected ? 'rotate-180' : ''}`}>
         ▼
       </span>
     </button>
@@ -175,8 +175,8 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
 
   return (
     <>
-      {/* Mobile/Tablet: accordion layout */}
-      <div className="lg:hidden space-y-3">
+      {/* Mobile (< 768px): single-column accordion */}
+      <div className="md:hidden space-y-3">
         {rooms.map(room => {
           const isExpanded = selectedId === room.id;
           return (
@@ -196,10 +196,50 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
         })}
       </div>
 
-      {/* Desktop: master-detail layout */}
-      <div className="hidden lg:grid lg:grid-cols-[1fr_0.7fr] lg:gap-6 lg:items-start">
-        {/* Room grid */}
-        <div className="space-y-3">
+      {/* Tablet (768px – 1024px): 2-column grid with slide-over panel */}
+      <div className="hidden md:block lg:hidden">
+        <div className="grid grid-cols-2 gap-3">
+          {rooms.map(room => (
+            <RoomCard
+              key={room.id}
+              room={room}
+              isSelected={selectedId === room.id}
+              onClick={() => setSelectedId(selectedId === room.id ? null : room.id)}
+            />
+          ))}
+        </div>
+        {/* Slide-over panel for selected room */}
+        {selectedRoom && (
+          <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setSelectedId(null)}>
+            <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
+            <div
+              className="relative w-[380px] max-w-[85vw] h-full bg-white dark:bg-neutral-900 shadow-2xl overflow-y-auto animate-slide-in-right"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 p-5 border-b border-neutral-100 dark:border-neutral-800 sticky top-0 bg-white dark:bg-neutral-900 z-10" style={{ background: urgencyBg(selectedRoom.score, 0.06) }}>
+                <span className="text-3xl">{selectedRoom.icon}</span>
+                <div className="flex-1">
+                  <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">{selectedRoom.name}</h2>
+                  <p className="text-xs text-neutral-500">
+                    {selectedRoom.chores.filter(c => c.level === 'red' || c.level === 'orange').length} of {selectedRoom.chores.length} chores need attention
+                  </p>
+                </div>
+                <button onClick={() => setSelectedId(null)} className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-400">
+                  ✕
+                </button>
+              </div>
+              <div className="p-4">
+                <ChoresList room={selectedRoom} onComplete={handleComplete} />
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop (> 1024px): master-detail with multi-column room grid */}
+      <div className="hidden lg:grid lg:grid-cols-[1fr_0.6fr] lg:gap-6 lg:items-start">
+        {/* Room grid — 2 cols on lg, 3 on xl */}
+        <div className="grid grid-cols-2 xl:grid-cols-3 gap-3">
           {rooms.map(room => (
             <RoomCard
               key={room.id}
@@ -211,7 +251,7 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
         </div>
 
         {/* Detail panel */}
-        <div className="sticky top-4">
+        <div className="sticky top-20">
           {selectedRoom ? (
             <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-lg overflow-hidden transition-all duration-300">
               <div className="flex items-center gap-3 p-5 border-b border-neutral-100 dark:border-neutral-800" style={{ background: urgencyBg(selectedRoom.score, 0.06) }}>

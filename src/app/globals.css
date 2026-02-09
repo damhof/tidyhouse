@@ -109,6 +109,13 @@ main {
 }
 .animate-fade-in { animation: fade-in 0.2s ease-out forwards; }
 
+/* Slide-in from right (tablet slide-over panel) */
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+.animate-slide-in-right { animation: slideInRight 0.25s ease-out forwards; }
+
 /* Satisfying completion pulse */
 @keyframes completePulse {
   0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
