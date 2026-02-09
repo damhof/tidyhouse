@@ -2,7 +2,7 @@
 
 import { db } from '@/db';
 import { choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees } from '@/db/schema';
-import { requireUserId } from './auth';
+import { requireUserId, getCurrentUserId } from './auth';
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 
@@ -25,6 +25,19 @@ export async function undoChoreCompletion(completionId: number) {
   revalidatePath('/');
   revalidatePath('/chores');
   revalidatePath('/history');
+}
+
+// --- Suggestion Actions ---
+export async function fetchSuggestedChores() {
+  const userId = await getCurrentUserId();
+  const { getSuggestedChores } = await import('./chores');
+  return getSuggestedChores(userId);
+}
+
+export async function fetchSessionPlan(timeBudget: number) {
+  const userId = await getCurrentUserId();
+  const { getSessionPlan } = await import('./chores');
+  return getSessionPlan(timeBudget, userId);
 }
 
 // --- Todo Actions ---

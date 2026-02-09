@@ -88,6 +88,116 @@ export async function getDistribution(days: number) {
   return completions;
 }
 
+export type SuggestedChore = {
+  id: number;
+  name: string;
+  effort: string;
+  frequencyDays: number;
+  level: StalenessLevel;
+  ratio: number;
+  lastCompleted: string | null;
+  lastUserId: number | null;
+  roomName: string;
+  roomIcon: string;
+  estimatedMinutes: number;
+};
+
+const EFFORT_MINUTES: Record<string, number> = { quick: 5, medium: 15, intensive: 30 };
+
+/**
+ * Get a ranked list of suggested chores considering urgency, effort, and fairness.
+ * Used by both Quick Pick (take first) and Session Planner (fill time budget).
+ */
+export async function getSuggestedChores(currentUserId?: number | null): Promise<SuggestedChore[]> {
+  const roomsData = await getRoomsWithScores();
+
+  // Get completion counts per user in last 7 days for fairness
+  const dist = await getDistribution(7);
+  const currentUserCount = dist.find(d => d.userId === currentUserId)?.count ?? 0;
+  const otherMaxCount = Math.max(0, ...dist.filter(d => d.userId !== currentUserId).map(d => d.count));
+  // fairnessBoost: if current user has done more than others, slightly deprioritize their common chores
+  const fairnessBoost = currentUserCount > otherMaxCount ? 0.1 : 0;
+
+  const suggestions: SuggestedChore[] = [];
+
+  for (const room of roomsData) {
+    for (const chore of room.chores) {
+      const effortMin = EFFORT_MINUTES[chore.effort] ?? 15;
+      // Score: higher = more urgent. Ratio > 1 means overdue.
+      const urgencyScore = chore.ratio;
+      // Slightly prefer tasks not last done by current user (fairness)
+      const fairnessAdj = chore.lastUserId === currentUserId ? -fairnessBoost : 0;
+      const score = urgencyScore + fairnessAdj;
+
+      suggestions.push({
+        id: chore.id,
+        name: chore.name,
+        effort: chore.effort,
+        frequencyDays: chore.frequencyDays,
+        level: chore.level as StalenessLevel,
+        ratio: chore.ratio,
+        lastCompleted: chore.lastCompleted,
+        lastUserId: chore.lastUserId,
+        roomName: room.name,
+        roomIcon: room.icon,
+        estimatedMinutes: effortMin,
+        // Store score temporarily for sorting (we'll sort then remove)
+      });
+      // Attach score for sorting
+      (suggestions[suggestions.length - 1] as any)._score = score;
+    }
+  }
+
+  // Sort by score descending (most urgent first)
+  suggestions.sort((a, b) => ((b as any)._score ?? 0) - ((a as any)._score ?? 0));
+
+  // Clean up temp field
+  for (const s of suggestions) delete (s as any)._score;
+
+  return suggestions;
+}
+
+/**
+ * Build a session plan fitting within a time budget (in minutes).
+ * Distributes across rooms to avoid doing all chores in one room.
+ */
+export async function getSessionPlan(timeBudget: number, currentUserId?: number | null): Promise<SuggestedChore[]> {
+  const allSuggestions = await getSuggestedChores(currentUserId);
+  const plan: SuggestedChore[] = [];
+  let remaining = timeBudget;
+  const roomCounts: Record<string, number> = {};
+
+  // Greedy: pick most urgent chore that fits, with room distribution penalty
+  const available = [...allSuggestions];
+
+  while (remaining > 0 && available.length > 0) {
+    // Score each candidate with room distribution consideration
+    let bestIdx = -1;
+    let bestPriority = -Infinity;
+
+    for (let i = 0; i < available.length; i++) {
+      const c = available[i];
+      if (c.estimatedMinutes > remaining) continue;
+      // Penalize rooms that already have many chores in the plan
+      const roomPenalty = (roomCounts[c.roomName] ?? 0) * 0.3;
+      const priority = c.ratio - roomPenalty;
+      if (priority > bestPriority) {
+        bestPriority = priority;
+        bestIdx = i;
+      }
+    }
+
+    if (bestIdx === -1) break;
+
+    const chosen = available.splice(bestIdx, 1)[0];
+    plan.push(chosen);
+    remaining -= chosen.estimatedMinutes;
+    roomCounts[chosen.roomName] = (roomCounts[chosen.roomName] ?? 0) + 1;
+  }
+
+  return plan;
+}
+
 export async function getHistory(limit = 50) {
   return db
     .select({

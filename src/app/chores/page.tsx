@@ -2,6 +2,7 @@ import { Suspense } from 'react';
 import { getRoomsWithScores } from '@/lib/chores';
 import { ExpandableRoomList } from '@/components/ExpandableRoomList';
 import { ChoresPageSkeleton } from '@/components/RoomCardSkeleton';
+import { WhatShouldIDo } from '@/components/WhatShouldIDo';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,6 +25,8 @@ export default function ChoresPage() {
       <Suspense fallback={<ChoresPageSkeleton />}>
         <ChoresContent />
       </Suspense>
+
+      <WhatShouldIDo />
     </div>
   );
 }
