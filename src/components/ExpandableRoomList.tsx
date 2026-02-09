@@ -9,11 +9,13 @@ import { useRouter } from 'next/navigation';
 type Chore = {
   id: number; name: string; effort: string; frequencyDays: number;
   level: string; ratio: number; lastCompleted: string | null; lastUserId: number | null;
+  pinnedDays?: string | null;
 };
 type Room = {
   id: number; name: string; icon: string; score: number;
   chores: Chore[];
 };
+type User = { id: number; name: string; avatarEmoji: string };
 
 /**
  * Map room score (0-100) to a gradient urgency background.
@@ -97,8 +99,15 @@ function getChoreSummary(room: Room): { text: string; isClean: boolean } {
   return { text: `${overdue} of ${total} chores overdue`, isClean: false };
 }
 
+const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+function formatPinnedDays(pinned: string | null | undefined): string | null {
+  if (!pinned) return null;
+  return pinned.split(',').map(d => DAY_LABELS[parseInt(d)] || d).join(', ');
+}
+
 /* ─── Chore Row ─── */
-function ChoreRow({ chore, onComplete }: { chore: Chore; onComplete: () => void }) {
+function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () => void; users?: User[] }) {
   const [justCompleted, setJustCompleted] = useState(false);
   const ago = chore.lastCompleted ? formatTimeAgo(chore.lastCompleted) : 'Never done';
 
@@ -186,6 +195,8 @@ function ChoreRow({ chore, onComplete }: { chore: Chore; onComplete: () => void 
           </p>
           <p className="text-xs text-warm-400">
             Every {chore.frequencyDays}d · {chore.effort} · {justCompleted ? 'Just now' : ago}
+            {chore.pinnedDays && <span className="hidden lg:inline"> · 📌 {formatPinnedDays(chore.pinnedDays)}</span>}
+            {chore.lastUserId && users && <span className="hidden lg:inline"> · {users.find(u => u.id === chore.lastUserId)?.avatarEmoji || ''}</span>}
           </p>
         </div>
         <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
@@ -195,13 +206,13 @@ function ChoreRow({ chore, onComplete }: { chore: Chore; onComplete: () => void 
 }
 
 /* ─── Chores List ─── */
-function ChoresList({ room, onComplete }: { room: Room; onComplete: (choreId: number) => void }) {
+function ChoresList({ room, onComplete, users }: { room: Room; onComplete: (choreId: number) => void; users?: User[] }) {
   const sortedChores = [...room.chores].sort((a, b) => b.ratio - a.ratio);
   const allClean = sortedChores.every(c => c.level === 'green');
   return (
     <div className="space-y-0.5">
       {sortedChores.map((chore) => (
-        <ChoreRow key={chore.id} chore={chore} onComplete={() => onComplete(chore.id)} />
+        <ChoreRow key={chore.id} chore={chore} onComplete={() => onComplete(chore.id)} users={users} />
       ))}
       {sortedChores.length === 0 && (
         <div className="text-center py-8 text-warm-400">
@@ -258,7 +269,7 @@ function RoomCard({ room, isSelected, onClick }: { room: Room; isSelected: boole
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-2xl transition-all duration-300 border
+      className={`w-full text-left p-4 lg:p-3 rounded-2xl transition-all duration-300 border
         ${isSelected
           ? 'ring-2 ring-sage-400 dark:ring-sage-600 shadow-lg scale-[1.01]'
           : 'hover:shadow-md hover:-translate-y-0.5'
@@ -307,7 +318,7 @@ function RoomCard({ room, isSelected, onClick }: { room: Room; isSelected: boole
 }
 
 /* ─── Main export ─── */
-export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
+export function ExpandableRoomList({ rooms: initialRooms, users }: { rooms: Room[]; users?: User[] }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [rooms, setRooms] = useState(initialRooms);
   const router = useRouter();
@@ -370,7 +381,7 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
               />
               <ExpandableSection isExpanded={isExpanded}>
                 <div className="mt-1 bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-3">
-                  <ChoresList room={room} onComplete={(choreId) => handleChoreComplete(room.id, choreId)} />
+                  <ChoresList room={room} onComplete={(choreId) => handleChoreComplete(room.id, choreId)} users={users} />
                 </div>
               </ExpandableSection>
             </div>
@@ -415,7 +426,7 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
                 </button>
               </div>
               <div className="p-4">
-                <ChoresList room={selectedRoom} onComplete={(choreId) => handleChoreComplete(selectedRoom.id, choreId)} />
+                <ChoresList room={selectedRoom} onComplete={(choreId) => handleChoreComplete(selectedRoom.id, choreId)} users={users} />
               </div>
             </div>
           </div>
@@ -451,7 +462,7 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
                 </div>
               </div>
               <div className="p-4">
-                <ChoresList room={selectedRoom} onComplete={(choreId) => handleChoreComplete(selectedRoom.id, choreId)} />
+                <ChoresList room={selectedRoom} onComplete={(choreId) => handleChoreComplete(selectedRoom.id, choreId)} users={users} />
               </div>
             </div>
           ) : (

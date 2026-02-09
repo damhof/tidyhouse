@@ -17,7 +17,7 @@ async function ChoresContent() {
 
   return (
     <>
-      <ExpandableRoomList rooms={rooms} />
+      <ExpandableRoomList rooms={rooms} users={allUsers} />
       <FairDistribution users={allUsers} weekDist={weekDist} monthDist={monthDist} />
     </>
   );

@@ -141,8 +141,13 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
           <span className="text-sm">{pi}</span>
           <div className="flex-1 min-w-0">
             <p className={`font-medium text-warm-800 dark:text-warm-100 ${compact ? 'text-sm' : ''}`}>{project.title}</p>
-            {!compact && project.description && (
-              <p className="text-xs text-warm-500 mt-0.5 line-clamp-2">{project.description}</p>
+            {project.description && (
+              <p className={`text-xs text-warm-500 mt-0.5 ${compact ? 'line-clamp-1' : 'line-clamp-2'}`}>{project.description}</p>
+            )}
+            {project.targetDate && (
+              <p className={`text-xs mt-1 ${new Date(project.targetDate) < new Date() ? 'text-red-500' : 'text-warm-400'}`}>
+                📅 {project.targetDate}
+              </p>
             )}
             {tags.length > 0 && (
               <div className="flex gap-1 mt-1.5 flex-wrap">

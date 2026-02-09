@@ -1,6 +1,6 @@
 import { db } from '@/db';
-import { pushSubscriptions, notificationPreferences, chores, choreCompletions, rooms } from '@/db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { pushSubscriptions, notificationPreferences, chores, choreCompletions, rooms, todos } from '@/db/schema';
+import { eq, sql, and, lt } from 'drizzle-orm';
 import { ensureVapid, webpush } from './vapid';
 import { getStaleness } from './chores';
 import { getWeeklySummary } from './summary';
@@ -82,6 +82,14 @@ export async function checkMorningDigest(currentTime?: string): Promise<number> 
     .map(([room, chores]) => `${room} (${chores.length})`)
     .join(', ');
 
+  // Check for overdue todos
+  const todayStr = new Date().toISOString().split('T')[0];
+  const overdueTodos = db.select().from(todos)
+    .where(and(eq(todos.completed, false), sql`${todos.dueDate} IS NOT NULL AND ${todos.dueDate} < ${todayStr}`))
+    .all();
+
+  if (overdueByRoom.size === 0 && overdueTodos.length === 0) return 0;
+
   let sent = 0;
   for (const userId of allUserIds) {
     const prefs = prefsMap.get(userId);
@@ -90,9 +98,13 @@ export async function checkMorningDigest(currentTime?: string): Promise<number> 
 
     if (!digestEnabled || digestTime !== now) continue;
 
+    const parts: string[] = [];
+    if (totalOverdue > 0) parts.push(`${totalOverdue} chore${totalOverdue === 1 ? '' : 's'}: ${roomSummary}`);
+    if (overdueTodos.length > 0) parts.push(`${overdueTodos.length} overdue todo${overdueTodos.length === 1 ? '' : 's'}`);
+
     sent += await sendToUser(userId, {
       title: '🏠 TidyHouse Morning Digest',
-      body: `${totalOverdue} chore${totalOverdue === 1 ? '' : 's'} need${totalOverdue === 1 ? 's' : ''} attention: ${roomSummary}`,
+      body: parts.join(' · '),
       url: '/',
     });
   }

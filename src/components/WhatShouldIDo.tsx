@@ -142,7 +142,7 @@ export function WhatShouldIDo() {
     return (
       <button
         onClick={openMenu}
-        className="fixed bottom-20 right-4 z-40 md:bottom-6 md:right-6 w-14 h-14 rounded-full bg-sage-500 hover:bg-sage-600 active:scale-95 text-white shadow-lg shadow-sage-500/25 flex items-center justify-center transition-all duration-200"
+        className="fixed bottom-24 right-4 z-40 md:bottom-6 md:right-6 w-14 h-14 rounded-full bg-sage-500 hover:bg-sage-600 active:scale-95 text-white shadow-lg shadow-sage-500/25 flex items-center justify-center transition-all duration-200"
         aria-label="What should I do?"
         title="What should I do?"
       >

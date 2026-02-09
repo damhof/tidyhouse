@@ -1,22 +1,23 @@
 'use server';
 
 import { db } from '@/db';
-import { choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees, users } from '@/db/schema';
+import { choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees, users, tags, todoTags } from '@/db/schema';
 import { requireUserId, getCurrentUserId } from './auth';
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 
 // --- Chore Actions ---
-export async function completeChore(choreId: number): Promise<number> {
+export async function completeChore(choreId: number, completedAt?: string): Promise<number> {
   const userId = await requireUserId();
   const result = db.insert(choreCompletions).values({
     choreId,
     userId,
-    completedAt: new Date().toISOString(),
+    completedAt: completedAt || new Date().toISOString(),
   }).run();
   revalidatePath('/');
   revalidatePath('/chores');
   revalidatePath('/history');
+  revalidatePath('/calendar');
   return Number(result.lastInsertRowid);
 }
 
@@ -82,9 +83,20 @@ export async function uncompleteTodo(todoId: number) {
   revalidatePath('/todos');
 }
 
+export async function updateTodo(todoId: number, data: {
+  title?: string; notes?: string | null; priority?: string | null;
+  dueDate?: string | null; assigneeId?: number | null; category?: string | null;
+}) {
+  db.update(todos).set(data).where(eq(todos.id, todoId)).run();
+  revalidatePath('/todos');
+  revalidatePath('/calendar');
+}
+
 export async function deleteTodo(todoId: number) {
+  db.delete(todoTags).where(eq(todoTags.todoId, todoId)).run();
   db.delete(todos).where(eq(todos.id, todoId)).run();
   revalidatePath('/todos');
+  revalidatePath('/calendar');
 }
 
 // --- Project Actions ---
@@ -259,6 +271,39 @@ export async function updateUserName(userId: number, name: string) {
 
 export async function getAllUsers() {
   return db.select().from(users).all();
+}
+
+// --- Tag Actions ---
+export async function createTag(name: string, color: string) {
+  const result = db.insert(tags).values({ name, color }).run();
+  revalidatePath('/todos');
+  return Number(result.lastInsertRowid);
+}
+
+export async function deleteTag(tagId: number) {
+  db.delete(todoTags).where(eq(todoTags.tagId, tagId)).run();
+  db.delete(tags).where(eq(tags.id, tagId)).run();
+  revalidatePath('/todos');
+}
+
+export async function getAllTags() {
+  return db.select().from(tags).all();
+}
+
+export async function setTodoTags(todoId: number, tagIds: number[]) {
+  db.delete(todoTags).where(eq(todoTags.todoId, todoId)).run();
+  for (const tagId of tagIds) {
+    db.insert(todoTags).values({ todoId, tagId }).run();
+  }
+  revalidatePath('/todos');
+}
+
+export async function getTodoTags(todoId: number) {
+  return db.select({ id: tags.id, name: tags.name, color: tags.color })
+    .from(todoTags)
+    .innerJoin(tags, eq(todoTags.tagId, tags.id))
+    .where(eq(todoTags.todoId, todoId))
+    .all();
 }
 
 export async function deleteProject(projectId: number) {

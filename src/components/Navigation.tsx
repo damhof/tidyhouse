@@ -7,6 +7,7 @@ const navItems = [
   { href: '/chores', label: 'Chores', icon: '🏠' },
   { href: '/todos', label: 'To-Do\'s', icon: '✅' },
   { href: '/projects', label: 'Projects', icon: '📋' },
+  { href: '/calendar', label: 'Calendar', icon: '📅' },
 ];
 
 const secondaryItems = [

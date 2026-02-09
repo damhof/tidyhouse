@@ -89,6 +89,17 @@ export const projectTasks = sqliteTable('project_tasks', {
   sortOrder: integer('sort_order').notNull().default(0),
 });
 
+export const tags = sqliteTable('tags', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  color: text('color').notNull().default('#7C9A82'),
+});
+
+export const todoTags = sqliteTable('todo_tags', {
+  todoId: integer('todo_id').notNull().references(() => todos.id),
+  tagId: integer('tag_id').notNull().references(() => tags.id),
+});
+
 export const pushSubscriptions = sqliteTable('push_subscriptions', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id),

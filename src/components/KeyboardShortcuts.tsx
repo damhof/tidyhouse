@@ -39,6 +39,9 @@ export function KeyboardShortcuts() {
         case '3':
           if (e.altKey) router.push('/projects');
           break;
+        case '4':
+          if (e.altKey) router.push('/calendar');
+          break;
       }
     };
 

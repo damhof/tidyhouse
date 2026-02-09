@@ -1,10 +1,10 @@
 import { db } from '@/db';
-import { todos, users, projects, projectTasks } from '@/db/schema';
+import { todos, users, projects, projectTasks, tags, todoTags } from '@/db/schema';
 import { eq, desc, and, sql } from 'drizzle-orm';
 import { getCurrentUserId } from '@/lib/auth';
 import { TodoList } from '@/components/TodoList';
 import { AddTodoForm } from '@/components/AddTodoForm';
-import { TodoCategoryFilter } from '@/components/TodoCategoryFilter';
+import { TodoSortFilter } from '@/components/TodoSortFilter';
 
 export const dynamic = 'force-dynamic';
 
@@ -47,14 +47,28 @@ export default async function TodosPage() {
 
   const allUsers = db.select().from(users).all();
   const allProjects = db.select().from(projects).all();
+  const allTags = db.select().from(tags).all();
   const projectMap = Object.fromEntries(allProjects.map(p => [p.id, p]));
+
+  // Fetch all todo-tag associations
+  const allTodoTags = db.select({
+    todoId: todoTags.todoId,
+    tagId: tags.id,
+    tagName: tags.name,
+    tagColor: tags.color,
+  }).from(todoTags).innerJoin(tags, eq(todoTags.tagId, tags.id)).all();
+
+  const todoTagMap: Record<number, { id: number; name: string; color: string }[]> = {};
+  for (const tt of allTodoTags) {
+    if (!todoTagMap[tt.todoId]) todoTagMap[tt.todoId] = [];
+    todoTagMap[tt.todoId].push({ id: tt.tagId, name: tt.tagName, color: tt.tagColor });
+  }
 
   // Fetch project tasks that are marked "show in todos"
   const linkedProjectTasks = db.select().from(projectTasks)
     .where(eq(projectTasks.showInTodos, true))
     .all();
 
-  // Convert project tasks to todo-like items
   const projectTaskItems = linkedProjectTasks.map(pt => ({
     id: pt.id,
     title: pt.title,
@@ -70,21 +84,19 @@ export default async function TodosPage() {
     createdAt: '',
     isProjectTask: true as const,
     projectTitle: projectMap[pt.projectId]?.title || 'Project',
+    tags: [] as { id: number; name: string; color: string }[],
   }));
 
-  // Merge regular todos with project task items
   const regularTodoItems = allTodos.map(t => ({
     ...t,
     isProjectTask: false as const,
     projectTitle: t.projectId && projectMap[t.projectId] ? projectMap[t.projectId].title : undefined,
+    tags: todoTagMap[t.id] || [],
   }));
 
   const allItems = [...regularTodoItems, ...projectTaskItems];
   const activeTodos = sortByPriority(allItems.filter(t => !t.completed));
   const completedTodos = allItems.filter(t => t.completed);
-
-  // Gather unique categories in use (from regular todos only)
-  const usedCategories = [...new Set(allTodos.map(t => t.category).filter(Boolean))] as string[];
 
   return (
     <div className="space-y-6">
@@ -94,35 +106,13 @@ export default async function TodosPage() {
 
       <AddTodoForm users={allUsers} projects={allProjects} />
 
-      {usedCategories.length > 0 && (
-        <TodoCategoryFilter
-          categories={usedCategories}
-          activeTodos={activeTodos}
-          completedTodos={completedTodos}
-          users={allUsers}
-          projects={allProjects}
-        />
-      )}
-
-      {usedCategories.length === 0 && (
-        <>
-          {activeTodos.length === 0 && completedTodos.length === 0 && (
-            <div className="text-center py-16 text-warm-400">
-              <p className="text-5xl mb-4">📝</p>
-              <p className="text-lg font-semibold text-warm-600 dark:text-warm-300">No to-do&apos;s yet</p>
-              <p className="text-sm mt-1">Add your first task above to get started!</p>
-            </div>
-          )}
-          {(activeTodos.length > 0 || completedTodos.length > 0) && (
-            <>
-              <TodoList todos={activeTodos} users={allUsers} projects={allProjects} label="Active" />
-              {completedTodos.length > 0 && (
-                <TodoList todos={completedTodos} users={allUsers} projects={allProjects} label="Done" defaultCollapsed />
-              )}
-            </>
-          )}
-        </>
-      )}
+      <TodoSortFilter
+        activeTodos={activeTodos}
+        completedTodos={completedTodos}
+        users={allUsers}
+        projects={allProjects}
+        allTags={allTags}
+      />
     </div>
   );
 }

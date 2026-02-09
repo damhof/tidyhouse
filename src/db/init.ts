@@ -241,5 +241,19 @@ export function ensureDb() {
     sqlite.exec(`ALTER TABLE notification_preferences ADD COLUMN last_weekly_summary TEXT`);
   } catch (e) { /* exists */ }
 
+  // Migration: tags table for todos
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS tags (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      color TEXT NOT NULL DEFAULT '#7C9A82'
+    );
+    CREATE TABLE IF NOT EXISTS todo_tags (
+      todo_id INTEGER NOT NULL REFERENCES todos(id),
+      tag_id INTEGER NOT NULL REFERENCES tags(id),
+      PRIMARY KEY (todo_id, tag_id)
+    );
+  `);
+
   sqlite.close();
 }

@@ -34,7 +34,7 @@ export function SummaryClient({ data }: { data: WeeklySummaryData }) {
   const totalEffort = data.userStats.reduce((s, u) => s + u.effortScore, 0);
 
   return (
-    <div className="space-y-6 max-w-2xl mx-auto">
+    <div className="space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="bg-white dark:bg-warm-800 rounded-2xl p-6 shadow-sm border border-warm-200 dark:border-warm-700">
         <h1 className="text-2xl font-bold mb-1">📊 Weekly Summary</h1>
@@ -43,6 +43,9 @@ export function SummaryClient({ data }: { data: WeeklySummaryData }) {
         </p>
         <p className="text-base leading-relaxed">{data.friendlyMessage}</p>
       </div>
+
+      {/* Desktop: 2-column grid for stats */}
+      <div className="lg:grid lg:grid-cols-2 lg:gap-6 space-y-6 lg:space-y-0">
 
       {/* Chores Balance */}
       <div className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-sm border border-warm-200 dark:border-warm-700">
@@ -123,6 +126,8 @@ export function SummaryClient({ data }: { data: WeeklySummaryData }) {
           </div>
         </div>
       </div>
+
+      </div>{/* end 2-col grid */}
 
       {/* Project Updates */}
       <div className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-sm border border-warm-200 dark:border-warm-700">
