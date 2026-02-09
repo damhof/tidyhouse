@@ -220,5 +220,19 @@ export function ensureDb() {
     );
   `);
 
+  // Migration: weekly summary columns in notification_preferences
+  try {
+    sqlite.exec(`ALTER TABLE notification_preferences ADD COLUMN weekly_summary INTEGER NOT NULL DEFAULT 1`);
+  } catch (e) { /* exists */ }
+  try {
+    sqlite.exec(`ALTER TABLE notification_preferences ADD COLUMN weekly_summary_day TEXT NOT NULL DEFAULT 'sunday'`);
+  } catch (e) { /* exists */ }
+  try {
+    sqlite.exec(`ALTER TABLE notification_preferences ADD COLUMN weekly_summary_time TEXT NOT NULL DEFAULT '19:00'`);
+  } catch (e) { /* exists */ }
+  try {
+    sqlite.exec(`ALTER TABLE notification_preferences ADD COLUMN last_weekly_summary TEXT`);
+  } catch (e) { /* exists */ }
+
   sqlite.close();
 }

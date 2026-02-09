@@ -103,6 +103,10 @@ export const notificationPreferences = sqliteTable('notification_preferences', {
   morningDigestTime: text('morning_digest_time').notNull().default('08:00'),
   urgencyAlerts: integer('urgency_alerts', { mode: 'boolean' }).notNull().default(true),
   lastUrgencyAlert: text('last_urgency_alert'),
+  weeklySummary: integer('weekly_summary', { mode: 'boolean' }).notNull().default(true),
+  weeklySummaryDay: text('weekly_summary_day').notNull().default('sunday'),
+  weeklySummaryTime: text('weekly_summary_time').notNull().default('19:00'),
+  lastWeeklySummary: text('last_weekly_summary'),
 });
 
 export const projectActivity = sqliteTable('project_activity', {

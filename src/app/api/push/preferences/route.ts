@@ -15,6 +15,10 @@ export async function GET() {
     morningDigestTime: '08:00',
     urgencyAlerts: true,
     lastUrgencyAlert: null,
+    weeklySummary: true,
+    weeklySummaryDay: 'sunday',
+    weeklySummaryTime: '19:00',
+    lastWeeklySummary: null,
   });
 }
 
@@ -22,7 +26,8 @@ export async function PUT(req: NextRequest) {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const { morningDigest, morningDigestTime, urgencyAlerts } = await req.json();
+  const body = await req.json();
+  const { morningDigest, morningDigestTime, urgencyAlerts, weeklySummary, weeklySummaryDay, weeklySummaryTime } = body;
 
   const existing = db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId)).get();
 
@@ -32,6 +37,9 @@ export async function PUT(req: NextRequest) {
         morningDigest: morningDigest ?? existing.morningDigest,
         morningDigestTime: morningDigestTime ?? existing.morningDigestTime,
         urgencyAlerts: urgencyAlerts ?? existing.urgencyAlerts,
+        weeklySummary: weeklySummary ?? existing.weeklySummary,
+        weeklySummaryDay: weeklySummaryDay ?? existing.weeklySummaryDay,
+        weeklySummaryTime: weeklySummaryTime ?? existing.weeklySummaryTime,
       })
       .where(eq(notificationPreferences.userId, userId))
       .run();
@@ -41,6 +49,9 @@ export async function PUT(req: NextRequest) {
       morningDigest: morningDigest ?? true,
       morningDigestTime: morningDigestTime ?? '08:00',
       urgencyAlerts: urgencyAlerts ?? true,
+      weeklySummary: weeklySummary ?? true,
+      weeklySummaryDay: weeklySummaryDay ?? 'sunday',
+      weeklySummaryTime: weeklySummaryTime ?? '19:00',
     }).run();
   }
 

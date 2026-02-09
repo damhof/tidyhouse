@@ -10,7 +10,8 @@ const navItems = [
 ];
 
 const secondaryItems = [
-  { href: '/history', label: 'History', icon: '📊' },
+  { href: '/summary', label: 'Summary', icon: '📊' },
+  { href: '/history', label: 'History', icon: '📈' },
   { href: '/settings', label: 'Settings', icon: '⚙️' },
 ];
 

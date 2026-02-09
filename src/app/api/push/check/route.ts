@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { checkMorningDigest, checkUrgencyAlerts } from '@/lib/push';
+import { checkMorningDigest, checkUrgencyAlerts, checkWeeklySummary } from '@/lib/push';
 
 export async function GET(req: NextRequest) {
   // Optional secret to protect the endpoint
@@ -15,11 +15,13 @@ export async function GET(req: NextRequest) {
 
   const digestSent = await checkMorningDigest(currentTime);
   const urgencySent = await checkUrgencyAlerts();
+  const summarySent = await checkWeeklySummary(currentTime);
 
   return NextResponse.json({
     ok: true,
     time: currentTime,
     digestSent,
     urgencySent,
+    summarySent,
   });
 }

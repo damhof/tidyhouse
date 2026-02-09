@@ -3,6 +3,7 @@ import { pushSubscriptions, notificationPreferences, chores, choreCompletions, r
 import { eq, sql } from 'drizzle-orm';
 import { ensureVapid, webpush } from './vapid';
 import { getStaleness } from './chores';
+import { getWeeklySummary } from './summary';
 
 type PushPayload = {
   title: string;
@@ -141,6 +142,70 @@ export async function checkUrgencyAlerts(): Promise<number> {
       } else {
         db.insert(notificationPreferences)
           .values({ userId, morningDigest: true, morningDigestTime: '08:00', urgencyAlerts: true, lastUrgencyAlert: now.toISOString() })
+          .run();
+      }
+      sent += count;
+    }
+  }
+  return sent;
+}
+
+const DAY_MAP: Record<string, number> = {
+  sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6,
+};
+
+export async function checkWeeklySummary(currentTime?: string): Promise<number> {
+  const now = new Date();
+  const time = currentTime || now.toTimeString().slice(0, 5);
+  const currentDay = now.getDay(); // 0=Sunday
+
+  const allUserIds = db.select({ id: sql<number>`id` }).from(sql`users`).all().map(u => u.id);
+  const allPrefs = db.select().from(notificationPreferences).all();
+  const prefsMap = new Map(allPrefs.map(p => [p.userId, p]));
+
+  const summary = getWeeklySummary();
+  let sent = 0;
+
+  for (const userId of allUserIds) {
+    const prefs = prefsMap.get(userId);
+    const enabled = prefs ? prefs.weeklySummary : true;
+    if (!enabled) continue;
+
+    const summaryDay = DAY_MAP[prefs?.weeklySummaryDay || 'sunday'] ?? 0;
+    const summaryTime = prefs?.weeklySummaryTime || '19:00';
+
+    if (currentDay !== summaryDay || time !== summaryTime) continue;
+
+    // Prevent duplicate sends: check if already sent today
+    if (prefs?.lastWeeklySummary) {
+      const lastSent = new Date(prefs.lastWeeklySummary);
+      if (now.getTime() - lastSent.getTime() < 12 * 60 * 60 * 1000) continue;
+    }
+
+    const count = await sendToUser(userId, {
+      title: '📊 Weekly Summary',
+      body: summary.friendlyMessage,
+      url: '/summary',
+    });
+
+    if (count > 0) {
+      if (prefs) {
+        db.update(notificationPreferences)
+          .set({ lastWeeklySummary: now.toISOString() })
+          .where(eq(notificationPreferences.userId, userId))
+          .run();
+      } else {
+        db.insert(notificationPreferences)
+          .values({
+            userId,
+            morningDigest: true,
+            morningDigestTime: '08:00',
+            urgencyAlerts: true,
+            weeklySummary: true,
+            weeklySummaryDay: 'sunday',
+            weeklySummaryTime: '19:00',
+            lastWeeklySummary: now.toISOString(),
+          })
           .run();
       }
       sent += count;

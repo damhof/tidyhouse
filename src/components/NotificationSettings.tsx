@@ -6,6 +6,9 @@ type Prefs = {
   morningDigest: boolean;
   morningDigestTime: string;
   urgencyAlerts: boolean;
+  weeklySummary: boolean;
+  weeklySummaryDay: string;
+  weeklySummaryTime: string;
 };
 
 function urlBase64ToUint8Array(base64String: string): Uint8Array {
@@ -24,6 +27,9 @@ export function NotificationSettings() {
     morningDigest: true,
     morningDigestTime: '08:00',
     urgencyAlerts: true,
+    weeklySummary: true,
+    weeklySummaryDay: 'sunday',
+    weeklySummaryTime: '19:00',
   });
   const [permissionState, setPermissionState] = useState<string>('default');
 
@@ -49,6 +55,9 @@ export function NotificationSettings() {
           morningDigest: prefsData.morningDigest ?? true,
           morningDigestTime: prefsData.morningDigestTime ?? '08:00',
           urgencyAlerts: prefsData.urgencyAlerts ?? true,
+          weeklySummary: prefsData.weeklySummary ?? true,
+          weeklySummaryDay: prefsData.weeklySummaryDay ?? 'sunday',
+          weeklySummaryTime: prefsData.weeklySummaryTime ?? '19:00',
         });
       }
       setSubscribed(!!existingSub);
@@ -214,6 +223,47 @@ export function NotificationSettings() {
               }`} />
             </button>
           </div>
+
+          {/* Weekly Summary */}
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-medium">📊 Weekly Summary</p>
+              <p className="text-xs text-warm-500 dark:text-warm-400">Chores balance, room scores &amp; more</p>
+            </div>
+            <button
+              onClick={() => updatePrefs({ weeklySummary: !prefs.weeklySummary })}
+              className={`relative w-12 h-7 rounded-full transition-colors ${
+                prefs.weeklySummary ? 'bg-sage-500' : 'bg-warm-300 dark:bg-warm-600'
+              }`}
+            >
+              <span className={`absolute top-0.5 left-0.5 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                prefs.weeklySummary ? 'translate-x-5' : ''
+              }`} />
+            </button>
+          </div>
+
+          {/* Weekly summary day/time picker */}
+          {prefs.weeklySummary && (
+            <div className="flex items-center gap-3 pl-4 flex-wrap">
+              <label className="text-xs text-warm-500">Day</label>
+              <select
+                value={prefs.weeklySummaryDay}
+                onChange={(e) => updatePrefs({ weeklySummaryDay: e.target.value })}
+                className="px-2 py-1 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
+              >
+                <option value="sunday">Sunday</option>
+                <option value="monday">Monday</option>
+                <option value="saturday">Saturday</option>
+              </select>
+              <label className="text-xs text-warm-500">at</label>
+              <input
+                type="time"
+                value={prefs.weeklySummaryTime}
+                onChange={(e) => updatePrefs({ weeklySummaryTime: e.target.value })}
+                className="px-2 py-1 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
+              />
+            </div>
+          )}
         </div>
       )}
     </section>
