@@ -106,10 +106,10 @@ export function ensureDb() {
   const count = sqlite.prepare('SELECT COUNT(*) as c FROM users').get() as any;
   if (count.c === 0) {
     sqlite.exec(`
-      INSERT INTO users (id, name, avatar_emoji) VALUES (1, 'User 1', '👨'), (2, 'User 2', '👩');
+      INSERT INTO users (id, name, avatar_emoji) VALUES (1, 'User 1', '👤'), (2, 'User 2', '👤');
       INSERT INTO rooms (name, icon, sort_order) VALUES
-        ('Kitchen', '🍳', 1), ('Bathroom', '🚿', 2), ('Living Room', '🛋️', 3),
-        ('Bedroom', '🛏️', 4), ('Hallway', '🚪', 5), ('Laundry', '👕', 6);
+        ('Kitchen', '🍳', 1), ('Bathroom', '🛁', 2), ('Living Room', '🛋️', 3),
+        ('Bedroom', '🛏️', 4), ('Laundry', '👕', 5), ('General', '🏠', 6);
     `);
 
     const roomRows = sqlite.prepare('SELECT id, name FROM rooms').all() as any[];
@@ -118,31 +118,38 @@ export function ensureDb() {
 
     const choreInsert = sqlite.prepare('INSERT INTO chores (room_id, name, frequency_days, effort, created_at) VALUES (?, ?, ?, ?, ?)');
     const choresList = [
-      [rm['Kitchen'], 'Wash dishes', 1, 'medium'],
+      // Kitchen
+      [rm['Kitchen'], 'Wash dishes', 1, 'quick'],
       [rm['Kitchen'], 'Clean countertops', 2, 'quick'],
-      [rm['Kitchen'], 'Clean stovetop', 3, 'medium'],
-      [rm['Kitchen'], 'Mop floor', 7, 'intensive'],
+      [rm['Kitchen'], 'Clean stove', 7, 'medium'],
+      [rm['Kitchen'], 'Mop floor', 7, 'medium'],
       [rm['Kitchen'], 'Clean fridge', 14, 'intensive'],
-      [rm['Kitchen'], 'Clean oven', 30, 'intensive'],
+      [rm['Kitchen'], 'Empty bin', 3, 'quick'],
+      // Bathroom
       [rm['Bathroom'], 'Clean toilet', 3, 'medium'],
-      [rm['Bathroom'], 'Clean shower', 7, 'intensive'],
-      [rm['Bathroom'], 'Clean sink', 3, 'quick'],
+      [rm['Bathroom'], 'Clean sink & mirror', 7, 'quick'],
+      [rm['Bathroom'], 'Clean shower/tub', 7, 'medium'],
       [rm['Bathroom'], 'Mop floor', 7, 'medium'],
-      [rm['Bathroom'], 'Wash towels', 7, 'medium'],
-      [rm['Living Room'], 'Vacuum', 3, 'medium'],
-      [rm['Living Room'], 'Dust surfaces', 7, 'medium'],
+      [rm['Bathroom'], 'Replace towels', 7, 'quick'],
+      // Living Room
+      [rm['Living Room'], 'Vacuum/mop floor', 3, 'medium'],
+      [rm['Living Room'], 'Dust surfaces', 7, 'quick'],
+      [rm['Living Room'], 'Tidy up', 2, 'quick'],
       [rm['Living Room'], 'Clean windows', 30, 'intensive'],
-      [rm['Living Room'], 'Tidy up', 1, 'quick'],
-      [rm['Bedroom'], 'Make bed', 1, 'quick'],
-      [rm['Bedroom'], 'Change sheets', 7, 'medium'],
-      [rm['Bedroom'], 'Vacuum', 7, 'medium'],
-      [rm['Bedroom'], 'Dust', 14, 'medium'],
-      [rm['Hallway'], 'Vacuum', 7, 'medium'],
-      [rm['Hallway'], 'Mop', 14, 'medium'],
-      [rm['Hallway'], 'Organize shoes', 7, 'quick'],
+      // Bedroom
+      [rm['Bedroom'], 'Change bedsheets', 7, 'medium'],
+      [rm['Bedroom'], 'Vacuum floor', 7, 'medium'],
+      [rm['Bedroom'], 'Dust surfaces', 14, 'quick'],
+      [rm['Bedroom'], 'Tidy nightstands', 7, 'quick'],
+      // Laundry
       [rm['Laundry'], 'Do laundry', 3, 'medium'],
-      [rm['Laundry'], 'Iron clothes', 7, 'intensive'],
-      [rm['Laundry'], 'Clean machine', 30, 'medium'],
+      [rm['Laundry'], 'Fold & put away', 3, 'medium'],
+      [rm['Laundry'], 'Iron', 7, 'medium'],
+      // General
+      [rm['General'], 'Vacuum hallway', 7, 'medium'],
+      [rm['General'], 'Take out recycling', 7, 'quick'],
+      [rm['General'], 'Water plants', 3, 'quick'],
+      [rm['General'], 'Dust/clean entryway', 14, 'quick'],
     ];
     for (const [roomId, name, freq, effort] of choresList) {
       choreInsert.run(roomId, name, freq, effort, now);

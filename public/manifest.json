@@ -1,7 +1,7 @@
 {
   "name": "TidyHouse",
   "short_name": "TidyHouse",
-  "description": "Household management for Damon & Samira",
+  "description": "Household chore management app",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#FAFAFA",
