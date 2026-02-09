@@ -102,45 +102,116 @@ function ChoreRow({ chore, onComplete }: { chore: Chore; onComplete: () => void 
   const [justCompleted, setJustCompleted] = useState(false);
   const ago = chore.lastCompleted ? formatTimeAgo(chore.lastCompleted) : 'Never done';
 
+  // Swipe state
+  const [swipeX, setSwipeX] = useState(0);
+  const [isSwiping, setIsSwiping] = useState(false);
+  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
+  const rowRef = useRef<HTMLDivElement>(null);
+
   const handleComplete = useCallback(() => {
     setJustCompleted(true);
     onComplete();
   }, [onComplete]);
 
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    setIsSwiping(false);
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartRef.current || justCompleted) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - touchStartRef.current.x;
+    const dy = touch.clientY - touchStartRef.current.y;
+
+    // If vertical scroll dominates, abort swipe
+    if (!isSwiping && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
+      touchStartRef.current = null;
+      return;
+    }
+
+    if (dx > 10) {
+      setIsSwiping(true);
+      // Clamp between 0 and 120
+      setSwipeX(Math.min(dx, 120));
+    }
+  }, [isSwiping, justCompleted]);
+
+  const handleTouchEnd = useCallback(() => {
+    if (swipeX > 80 && !justCompleted) {
+      // Complete on release
+      setSwipeX(0);
+      handleComplete();
+    } else {
+      setSwipeX(0);
+    }
+    setIsSwiping(false);
+    touchStartRef.current = null;
+  }, [swipeX, justCompleted, handleComplete]);
+
+  const swipeProgress = Math.min(swipeX / 80, 1);
+
   return (
-    <div
-      className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all duration-500 hover:bg-neutral-50 dark:hover:bg-neutral-800/50
-        ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}`}
-    >
+    <div className="relative overflow-hidden rounded-xl" ref={rowRef}>
+      {/* Swipe background */}
       <div
-        className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors duration-700"
-        style={{ backgroundColor: justCompleted ? '#4CAF50' : stalenessColor(chore.level) }}
-      />
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium transition-all duration-500 ${justCompleted ? 'text-neutral-400 line-through' : 'text-neutral-800 dark:text-neutral-100'}`}>
-          {chore.name}
-        </p>
-        <p className="text-xs text-neutral-400">
-          Every {chore.frequencyDays}d · {chore.effort} · {justCompleted ? 'Just now' : ago}
-        </p>
+        className="absolute inset-0 flex items-center pl-4 rounded-xl transition-opacity duration-150"
+        style={{
+          backgroundColor: `rgba(76, 175, 80, ${0.15 + swipeProgress * 0.35})`,
+          opacity: swipeX > 5 ? 1 : 0,
+        }}
+      >
+        <span className={`text-sm font-semibold transition-all duration-150 ${swipeProgress >= 1 ? 'text-green-700 dark:text-green-300 scale-110' : 'text-green-600/70 dark:text-green-400/70'}`}>
+          {swipeProgress >= 1 ? '✓ Done!' : '→ Swipe to complete'}
+        </span>
       </div>
-      <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
+
+      <div
+        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-neutral-50 dark:hover:bg-neutral-800/50 relative bg-white dark:bg-neutral-900
+          ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}
+          ${isSwiping ? '' : 'duration-300'}`}
+        style={{ transform: `translateX(${swipeX}px)` }}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div
+          className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors duration-700"
+          style={{ backgroundColor: justCompleted ? '#4CAF50' : stalenessColor(chore.level) }}
+        />
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm font-medium transition-all duration-500 ${justCompleted ? 'text-neutral-400 line-through' : 'text-neutral-800 dark:text-neutral-100'}`}>
+            {chore.name}
+          </p>
+          <p className="text-xs text-neutral-400">
+            Every {chore.frequencyDays}d · {chore.effort} · {justCompleted ? 'Just now' : ago}
+          </p>
+        </div>
+        <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
+      </div>
     </div>
   );
 }
 
 /* ─── Chores List ─── */
-function ChoresList({ room, onComplete }: { room: Room; onComplete: () => void }) {
+function ChoresList({ room, onComplete }: { room: Room; onComplete: (choreId: number) => void }) {
   const sortedChores = [...room.chores].sort((a, b) => b.ratio - a.ratio);
+  const allClean = sortedChores.every(c => c.level === 'green');
   return (
     <div className="space-y-0.5">
       {sortedChores.map((chore) => (
-        <ChoreRow key={chore.id} chore={chore} onComplete={onComplete} />
+        <ChoreRow key={chore.id} chore={chore} onComplete={() => onComplete(chore.id)} />
       ))}
       {sortedChores.length === 0 && (
         <div className="text-center py-8 text-neutral-400">
           <p className="text-3xl mb-2">✨</p>
           <p className="text-sm font-medium">No chores in this room yet</p>
+        </div>
+      )}
+      {sortedChores.length > 0 && allClean && (
+        <div className="text-center py-4 text-green-500">
+          <p className="text-sm font-medium">All clean — great job! 🌟</p>
         </div>
       )}
     </div>
@@ -236,11 +307,26 @@ function RoomCard({ room, isSelected, onClick }: { room: Room; isSelected: boole
 }
 
 /* ─── Main export ─── */
-export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
+export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
   const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [rooms, setRooms] = useState(initialRooms);
   const router = useRouter();
 
-  const handleComplete = useCallback(() => {
+  // Sync with server data on prop change
+  useEffect(() => { setRooms(initialRooms); }, [initialRooms]);
+
+  const handleChoreComplete = useCallback((roomId: number, choreId: number) => {
+    // Optimistically update the room's chore state
+    setRooms(prev => prev.map(room => {
+      if (room.id !== roomId) return room;
+      const updatedChores = room.chores.map(c =>
+        c.id === choreId ? { ...c, level: 'green' as const, ratio: 0, lastCompleted: new Date().toISOString() } : c
+      );
+      const score = updatedChores.length === 0 ? 100 :
+        Math.round(updatedChores.reduce((sum, c) => sum + Math.max(0, 1 - c.ratio), 0) / updatedChores.length * 100);
+      return { ...room, chores: updatedChores, score };
+    }).sort((a, b) => a.score - b.score));
+
     setTimeout(() => router.refresh(), 800);
   }, [router]);
 
@@ -253,6 +339,23 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
       <div className="mb-4">
         <HouseHealthBar rooms={rooms} />
       </div>
+
+      {/* Empty state */}
+      {rooms.length === 0 && (
+        <div className="text-center py-16 text-neutral-400">
+          <p className="text-5xl mb-4">🏠</p>
+          <p className="text-lg font-semibold text-neutral-600 dark:text-neutral-300">No rooms yet</p>
+          <p className="text-sm mt-1">Add some rooms to start tracking chores!</p>
+        </div>
+      )}
+
+      {/* No overdue message when all rooms are clean */}
+      {rooms.length > 0 && rooms.every(r => r.score >= 80) && (
+        <div className="text-center py-6 text-green-600 dark:text-green-400">
+          <p className="text-3xl mb-2">✨</p>
+          <p className="text-sm font-medium">No overdue chores — the house is spotless!</p>
+        </div>
+      )}
 
       {/* Mobile (< 768px): single-column accordion */}
       <div className="md:hidden space-y-3">
@@ -267,7 +370,7 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
               />
               <ExpandableSection isExpanded={isExpanded}>
                 <div className="mt-1 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-3">
-                  <ChoresList room={room} onComplete={handleComplete} />
+                  <ChoresList room={room} onComplete={(choreId) => handleChoreComplete(room.id, choreId)} />
                 </div>
               </ExpandableSection>
             </div>
@@ -312,7 +415,7 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
                 </button>
               </div>
               <div className="p-4">
-                <ChoresList room={selectedRoom} onComplete={handleComplete} />
+                <ChoresList room={selectedRoom} onComplete={(choreId) => handleChoreComplete(selectedRoom.id, choreId)} />
               </div>
             </div>
           </div>
@@ -348,7 +451,7 @@ export function ExpandableRoomList({ rooms }: { rooms: Room[] }) {
                 </div>
               </div>
               <div className="p-4">
-                <ChoresList room={selectedRoom} onComplete={handleComplete} />
+                <ChoresList room={selectedRoom} onComplete={(choreId) => handleChoreComplete(selectedRoom.id, choreId)} />
               </div>
             </div>
           ) : (

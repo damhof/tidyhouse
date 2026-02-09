@@ -1,11 +1,17 @@
+import { Suspense } from 'react';
 import { getRoomsWithScores } from '@/lib/chores';
 import { ExpandableRoomList } from '@/components/ExpandableRoomList';
+import { ChoresPageSkeleton } from '@/components/RoomCardSkeleton';
 
 export const dynamic = 'force-dynamic';
 
-export default async function ChoresPage() {
+async function ChoresContent() {
   const rooms = await getRoomsWithScores();
 
+  return <ExpandableRoomList rooms={rooms} />;
+}
+
+export default function ChoresPage() {
   return (
     <div className="space-y-4">
       <div>
@@ -15,7 +21,9 @@ export default async function ChoresPage() {
         </p>
       </div>
 
-      <ExpandableRoomList rooms={rooms} />
+      <Suspense fallback={<ChoresPageSkeleton />}>
+        <ChoresContent />
+      </Suspense>
     </div>
   );
 }

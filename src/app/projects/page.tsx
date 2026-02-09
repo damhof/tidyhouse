@@ -17,7 +17,15 @@ export default async function ProjectsPage() {
         <CreateProjectButton />
       </div>
 
-      <KanbanBoard projects={allProjects} tags={allTags} />
+      {allProjects.length === 0 ? (
+        <div className="text-center py-16 text-neutral-400">
+          <p className="text-5xl mb-4">📋</p>
+          <p className="text-lg font-semibold text-neutral-600 dark:text-neutral-300">No projects yet</p>
+          <p className="text-sm mt-1">Create your first project to organize bigger tasks!</p>
+        </div>
+      ) : (
+        <KanbanBoard projects={allProjects} tags={allTags} />
+      )}
     </div>
   );
 }

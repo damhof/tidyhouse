@@ -53,9 +53,20 @@ export default async function TodosPage() {
 
       {usedCategories.length === 0 && (
         <>
-          <TodoList todos={activeTodos} users={allUsers} projects={allProjects} label="Active" />
-          {completedTodos.length > 0 && (
-            <TodoList todos={completedTodos} users={allUsers} projects={allProjects} label="Completed" defaultCollapsed />
+          {activeTodos.length === 0 && completedTodos.length === 0 && (
+            <div className="text-center py-16 text-neutral-400">
+              <p className="text-5xl mb-4">📝</p>
+              <p className="text-lg font-semibold text-neutral-600 dark:text-neutral-300">No to-do&apos;s yet</p>
+              <p className="text-sm mt-1">Add your first task above to get started!</p>
+            </div>
+          )}
+          {(activeTodos.length > 0 || completedTodos.length > 0) && (
+            <>
+              <TodoList todos={activeTodos} users={allUsers} projects={allProjects} label="Active" />
+              {completedTodos.length > 0 && (
+                <TodoList todos={completedTodos} users={allUsers} projects={allProjects} label="Completed" defaultCollapsed />
+              )}
+            </>
           )}
         </>
       )}
