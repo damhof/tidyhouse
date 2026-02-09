@@ -47,6 +47,7 @@ export async function createTodo(formData: FormData) {
   const notes = formData.get('notes') as string || null;
   const category = formData.get('category') as string || null;
   const dueDate = formData.get('dueDate') as string || null;
+  const priority = formData.get('priority') as string || null;
   const assigneeId = formData.get('assigneeId') ? parseInt(formData.get('assigneeId') as string) : null;
   const projectId = formData.get('projectId') ? parseInt(formData.get('projectId') as string) : null;
 
@@ -55,6 +56,7 @@ export async function createTodo(formData: FormData) {
     notes,
     category: category || null,
     dueDate: dueDate || null,
+    priority: priority || null,
     assigneeId,
     projectId,
     createdAt: new Date().toISOString(),
@@ -193,6 +195,29 @@ export async function toggleProjectTask(taskId: number) {
     .where(eq(projectTasks.id, taskId))
     .run();
   revalidatePath(`/projects/${task.projectId}`);
+  revalidatePath('/todos');
+}
+
+export async function toggleProjectTaskShowInTodos(taskId: number) {
+  const task = db.select().from(projectTasks).where(eq(projectTasks.id, taskId)).get();
+  if (!task) return;
+  db.update(projectTasks)
+    .set({ showInTodos: !task.showInTodos })
+    .where(eq(projectTasks.id, taskId))
+    .run();
+  revalidatePath(`/projects/${task.projectId}`);
+  revalidatePath('/todos');
+}
+
+export async function purgeOldCompletedTodos() {
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const { sql } = await import('drizzle-orm');
+  db.delete(todos).where(
+    and(
+      eq(todos.completed, true),
+      sql`${todos.completedAt} < ${cutoff}`
+    )
+  ).run();
 }
 
 export async function switchUser(userId: number) {

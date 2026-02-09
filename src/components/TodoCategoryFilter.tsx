@@ -8,7 +8,8 @@ type Todo = {
   id: number; title: string; notes: string | null; category: string | null;
   dueDate: string | null; assigneeId: number | null; projectId: number | null;
   completed: boolean | null; completedAt: string | null; completedBy: number | null;
-  createdAt: string;
+  createdAt: string; priority?: string | null;
+  isProjectTask?: boolean; projectTitle?: string;
 };
 type User = { id: number; name: string; avatarEmoji: string };
 type Project = { id: number; title: string };

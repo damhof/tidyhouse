@@ -35,6 +35,7 @@ export const todos = sqliteTable('todos', {
   notes: text('notes'),
   category: text('category'),
   dueDate: text('due_date'),
+  priority: text('priority'),
   assigneeId: integer('assignee_id').references(() => users.id),
   projectId: integer('project_id').references(() => projects.id),
   completed: integer('completed', { mode: 'boolean' }).notNull().default(false),
@@ -83,6 +84,7 @@ export const projectTasks = sqliteTable('project_tasks', {
   assigneeId: integer('assignee_id').references(() => users.id),
   dueDate: text('due_date'),
   status: text('status', { enum: ['todo', 'done'] }).notNull().default('todo'),
+  showInTodos: integer('show_in_todos', { mode: 'boolean' }).notNull().default(false),
   sortOrder: integer('sort_order').notNull().default(0),
 });
 

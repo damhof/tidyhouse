@@ -1,10 +1,10 @@
 'use client';
 
-import { toggleProjectTask, deleteProjectTask } from '@/lib/actions';
+import { toggleProjectTask, deleteProjectTask, toggleProjectTaskShowInTodos } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-type Task = { id: number; title: string; status: string; assigneeId: number | null; dueDate: string | null };
+type Task = { id: number; title: string; status: string; assigneeId: number | null; dueDate: string | null; showInTodos: boolean };
 
 export function ProjectTaskList({ tasks }: { tasks: Task[] }) {
   const router = useRouter();
@@ -31,6 +31,20 @@ export function ProjectTaskList({ tasks }: { tasks: Task[] }) {
           <span className={`text-sm flex-1 ${task.status === 'done' ? 'line-through text-neutral-400' : 'text-neutral-800 dark:text-neutral-100'}`}>
             {task.title}
           </span>
+          <button
+            onClick={async () => {
+              await toggleProjectTaskShowInTodos(task.id);
+              router.refresh();
+            }}
+            className={`text-xs px-2 py-1 rounded-lg transition-all flex-shrink-0 ${
+              task.showInTodos
+                ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300'
+                : 'opacity-0 group-hover:opacity-100 bg-neutral-100 dark:bg-neutral-800 text-neutral-400 hover:text-blue-500'
+            }`}
+            title={task.showInTodos ? 'Shown in To-Do\'s — click to hide' : 'Show in To-Do\'s'}
+          >
+            {task.showInTodos ? '✅ In To-Do\'s' : '📋 To-Do\'s'}
+          </button>
           <button
             onClick={async () => {
               await deleteProjectTask(task.id);

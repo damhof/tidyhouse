@@ -38,6 +38,12 @@ export function AddTodoForm({ users, projects }: { users: User[]; projects: Proj
           <option value="">No category</option>
           {TODO_CATEGORIES.map(c => <option key={c.value} value={c.value}>{c.emoji} {c.label}</option>)}
         </select>
+        <select name="priority" className="text-sm bg-neutral-100 dark:bg-neutral-800 rounded-xl px-3 py-2 outline-none">
+          <option value="">No priority</option>
+          <option value="low">🔵 Low</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="high">🔴 High</option>
+        </select>
         <input name="dueDate" type="date" className="text-sm bg-neutral-100 dark:bg-neutral-800 rounded-xl px-3 py-2 outline-none" />
         <select name="assigneeId" className="text-sm bg-neutral-100 dark:bg-neutral-800 rounded-xl px-3 py-2 outline-none">
           <option value="">Anyone</option>
