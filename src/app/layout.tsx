@@ -5,6 +5,7 @@ import { BottomNav, SideRail } from '@/components/Navigation';
 import { Header } from '@/components/Header';
 import { UserGate } from '@/components/UserGate';
 import { ServiceWorker } from '@/components/ServiceWorker';
+import { ToastContainer } from '@/components/Toast';
 import { getCurrentUserId, isAuthenticated, isAuthEnabled } from '@/lib/auth';
 import { db } from '@/db';
 import { users } from '@/db/schema';
@@ -58,11 +59,12 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               <SideRail />
               <div className="md:ml-20 lg:ml-56 min-h-screen pb-20 md:pb-0">
                 <Header userName={user.name} userEmoji={user.avatarEmoji} userId={user.id} />
-                <main className="px-4 py-6 max-w-4xl mx-auto">
+                <main className="px-4 py-6 max-w-6xl mx-auto">
                   {children}
                 </main>
               </div>
               <BottomNav />
+              <ToastContainer />
             </>
           )}
         </ThemeProvider>

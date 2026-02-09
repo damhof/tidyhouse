@@ -7,13 +7,21 @@ import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 
 // --- Chore Actions ---
-export async function completeChore(choreId: number) {
+export async function completeChore(choreId: number): Promise<number> {
   const userId = await requireUserId();
-  db.insert(choreCompletions).values({
+  const result = db.insert(choreCompletions).values({
     choreId,
     userId,
     completedAt: new Date().toISOString(),
   }).run();
+  revalidatePath('/');
+  revalidatePath('/chores');
+  revalidatePath('/history');
+  return Number(result.lastInsertRowid);
+}
+
+export async function undoChoreCompletion(completionId: number) {
+  db.delete(choreCompletions).where(eq(choreCompletions.id, completionId)).run();
   revalidatePath('/');
   revalidatePath('/chores');
   revalidatePath('/history');
