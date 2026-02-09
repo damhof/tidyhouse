@@ -168,13 +168,13 @@ export function WhatShouldIDo() {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 pt-5 pb-3">
-          <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">
+          <h2 className="text-lg font-bold text-warm-800 dark:text-warm-100">
             {mode === 'menu' && '🤔 What should I do?'}
             {mode === 'quickpick' && '⚡ Quick Pick'}
             {mode === 'planner-select' && '📋 Session Planner'}
             {mode === 'planner-session' && `📋 ${timeBudget} min Session`}
           </h2>
-          <button onClick={close} className="p-1.5 rounded-full hover:bg-neutral-100 dark:hover:bg-warm-800 text-neutral-400">
+          <button onClick={close} className="p-1.5 rounded-full hover:bg-warm-100 dark:hover:bg-warm-800 text-warm-400">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
             </svg>
@@ -184,7 +184,7 @@ export function WhatShouldIDo() {
         {loading && (
           <div className="px-5 pb-8 flex items-center justify-center gap-3 py-12">
             <div className="w-5 h-5 border-2 border-sage-500 border-t-transparent rounded-full animate-spin" />
-            <span className="text-neutral-500 dark:text-neutral-400 text-sm">Finding the best chores…</span>
+            <span className="text-warm-500 dark:text-warm-400 text-sm">Finding the best chores…</span>
           </div>
         )}
 
@@ -197,8 +197,8 @@ export function WhatShouldIDo() {
             >
               <span className="text-2xl">⚡</span>
               <div>
-                <div className="font-semibold text-neutral-800 dark:text-neutral-100">Quick Pick</div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400">Show me the most urgent chore</div>
+                <div className="font-semibold text-warm-800 dark:text-warm-100">Quick Pick</div>
+                <div className="text-sm text-warm-500 dark:text-warm-400">Show me the most urgent chore</div>
               </div>
             </button>
             <button
@@ -207,8 +207,8 @@ export function WhatShouldIDo() {
             >
               <span className="text-2xl">📋</span>
               <div>
-                <div className="font-semibold text-neutral-800 dark:text-neutral-100">Session Planner</div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400">Plan a focused cleaning session</div>
+                <div className="font-semibold text-warm-800 dark:text-warm-100">Session Planner</div>
+                <div className="text-sm text-warm-500 dark:text-warm-400">Plan a focused cleaning session</div>
               </div>
             </button>
           </div>
@@ -232,7 +232,7 @@ export function WhatShouldIDo() {
             <div className="flex gap-3">
               <button
                 onClick={skipQuickPick}
-                className="flex-1 py-3 rounded-xl border-2 border-neutral-200 dark:border-warm-700 text-neutral-600 dark:text-neutral-300 font-medium hover:bg-neutral-50 dark:hover:bg-warm-800 transition-colors"
+                className="flex-1 py-3 rounded-xl border-2 border-warm-200 dark:border-warm-700 text-warm-600 dark:text-warm-300 font-medium hover:bg-warm-50 dark:hover:bg-warm-800 transition-colors"
               >
                 Skip →
               </button>
@@ -244,7 +244,7 @@ export function WhatShouldIDo() {
               </button>
             </div>
 
-            <div className="text-center text-xs text-neutral-400 mt-3">
+            <div className="text-center text-xs text-warm-400 mt-3">
               {quickPickIndex + 1} of {suggestions.length} suggestions
             </div>
           </div>
@@ -253,15 +253,15 @@ export function WhatShouldIDo() {
         {mode === 'quickpick' && !loading && !currentChore && (
           <div className="px-5 pb-6 text-center py-8">
             <div className="text-4xl mb-3">✨</div>
-            <div className="font-semibold text-neutral-800 dark:text-neutral-100">All caught up!</div>
-            <div className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">No chores need attention right now.</div>
+            <div className="font-semibold text-warm-800 dark:text-warm-100">All caught up!</div>
+            <div className="text-sm text-warm-500 dark:text-warm-400 mt-1">No chores need attention right now.</div>
           </div>
         )}
 
         {/* Planner: Time Select */}
         {mode === 'planner-select' && !loading && (
           <div className="px-5 pb-6 space-y-3">
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-2">How much time do you have?</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400 mb-2">How much time do you have?</p>
             {[15, 30, 60].map(min => (
               <button
                 key={min}
@@ -270,9 +270,9 @@ export function WhatShouldIDo() {
               >
                 <div className="flex items-center gap-3">
                   <span className="text-xl">{min === 15 ? '🏃' : min === 30 ? '🧹' : '🏠'}</span>
-                  <span className="font-semibold text-neutral-800 dark:text-neutral-100">{min} minutes</span>
+                  <span className="font-semibold text-warm-800 dark:text-warm-100">{min} minutes</span>
                 </div>
-                <span className="text-neutral-400">→</span>
+                <span className="text-warm-400">→</span>
               </button>
             ))}
           </div>
@@ -283,11 +283,11 @@ export function WhatShouldIDo() {
           <div className="px-5 pb-6">
             {/* Progress bar */}
             <div className="mb-4">
-              <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400 mb-1.5">
+              <div className="flex items-center justify-between text-xs text-warm-500 dark:text-warm-400 mb-1.5">
                 <span>{completedCount} of {sessionPlan.length} chores</span>
                 <span>{Math.round(progressPct)}%</span>
               </div>
-              <div className="h-2.5 bg-neutral-100 dark:bg-warm-800 rounded-full overflow-hidden">
+              <div className="h-2.5 bg-warm-100 dark:bg-warm-800 rounded-full overflow-hidden">
                 <div
                   className="h-full bg-sage-500 rounded-full transition-all duration-500 ease-out"
                   style={{ width: `${progressPct}%` }}
@@ -299,8 +299,8 @@ export function WhatShouldIDo() {
             {celebrating && (
               <div className="text-center py-6 animate-fade-in">
                 <div className="text-5xl mb-3" style={{ animation: 'bounce 0.6s ease-out' }}>🎉</div>
-                <div className="text-xl font-bold text-neutral-800 dark:text-neutral-100">All done!</div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Great job! Your house thanks you.</div>
+                <div className="text-xl font-bold text-warm-800 dark:text-warm-100">All done!</div>
+                <div className="text-sm text-warm-500 dark:text-warm-400 mt-1">Great job! Your house thanks you.</div>
                 <button
                   onClick={close}
                   className="mt-4 px-6 py-2.5 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-medium transition-colors"
@@ -324,14 +324,14 @@ export function WhatShouldIDo() {
                       className={`w-full flex items-center gap-3 p-3.5 rounded-xl text-left transition-all duration-300 ${
                         done
                           ? 'bg-sage-50 dark:bg-sage-900/10 opacity-60'
-                          : 'bg-neutral-50 dark:bg-warm-800/50 hover:bg-neutral-100 dark:hover:bg-warm-800 active:scale-[0.98]'
+                          : 'bg-warm-50 dark:bg-warm-800/50 hover:bg-warm-100 dark:hover:bg-warm-800 active:scale-[0.98]'
                       } ${isJustDone ? 'animate-complete-pulse' : ''}`}
                     >
                       {/* Checkbox */}
                       <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
                         done
                           ? 'bg-sage-500 border-sage-500 text-white'
-                          : 'border-neutral-300 dark:border-warm-600'
+                          : 'border-warm-300 dark:border-warm-600'
                       }`}>
                         {done && (
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -341,10 +341,10 @@ export function WhatShouldIDo() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className={`font-medium text-sm ${done ? 'line-through text-neutral-400 dark:text-neutral-500' : 'text-neutral-800 dark:text-neutral-100'}`}>
+                        <div className={`font-medium text-sm ${done ? 'line-through text-warm-400 dark:text-warm-500' : 'text-warm-800 dark:text-warm-100'}`}>
                           {chore.name}
                         </div>
-                        <div className="text-xs text-neutral-400 dark:text-neutral-500 flex items-center gap-1.5">
+                        <div className="text-xs text-warm-400 dark:text-warm-500 flex items-center gap-1.5">
                           <span>{chore.roomIcon}</span>
                           <span>{chore.roomName}</span>
                           <span>·</span>
@@ -360,8 +360,8 @@ export function WhatShouldIDo() {
             {sessionPlan.length === 0 && !celebrating && (
               <div className="text-center py-8">
                 <div className="text-4xl mb-3">✨</div>
-                <div className="font-semibold text-neutral-800 dark:text-neutral-100">Nothing to do!</div>
-                <div className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">Your house is in great shape.</div>
+                <div className="font-semibold text-warm-800 dark:text-warm-100">Nothing to do!</div>
+                <div className="text-sm text-warm-500 dark:text-warm-400 mt-1">Your house is in great shape.</div>
               </div>
             )}
           </div>

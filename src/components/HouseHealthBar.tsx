@@ -29,11 +29,11 @@ export function HouseHealthBar({ rooms }: { rooms: Room[] }) {
       : `${overdueChores} chores need attention`;
 
   return (
-    <div className="rounded-2xl p-4 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shadow-sm">
+    <div className="rounded-2xl p-4 bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 shadow-sm">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <span className="text-xl">🏠</span>
-          <span className="font-semibold text-neutral-800 dark:text-neutral-100 text-sm">
+          <span className="font-semibold text-warm-800 dark:text-warm-100 text-sm">
             House Health
           </span>
         </div>
@@ -42,13 +42,13 @@ export function HouseHealthBar({ rooms }: { rooms: Room[] }) {
         </span>
       </div>
       {/* Progress bar */}
-      <div className="h-2.5 rounded-full bg-neutral-100 dark:bg-neutral-800 overflow-hidden mb-2">
+      <div className="h-2.5 rounded-full bg-warm-100 dark:bg-warm-700 overflow-hidden mb-2">
         <div
           className="h-full rounded-full transition-all duration-700 ease-out"
           style={{ width: `${avgScore}%`, backgroundColor: color }}
         />
       </div>
-      <p className="text-xs text-neutral-500 dark:text-neutral-400">{message}</p>
+      <p className="text-xs text-warm-500 dark:text-warm-400">{message}</p>
     </div>
   );
 }

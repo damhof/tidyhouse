@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees } from '@/db/schema';
+import { choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees, users } from '@/db/schema';
 import { requireUserId, getCurrentUserId } from './auth';
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
@@ -248,6 +248,17 @@ export async function updateProjectNote(noteId: number, contentHtml: string) {
 export async function addProjectTag(projectId: number, tag: string) {
   db.insert(projectTags).values({ projectId, tag }).run();
   revalidatePath(`/projects/${projectId}`);
+}
+
+export async function updateUserName(userId: number, name: string) {
+  const trimmed = name.trim();
+  if (!trimmed || trimmed.length > 30) return;
+  db.update(users).set({ name: trimmed }).where(eq(users.id, userId)).run();
+  revalidatePath('/');
+}
+
+export async function getAllUsers() {
+  return db.select().from(users).all();
 }
 
 export async function deleteProject(projectId: number) {

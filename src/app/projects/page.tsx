@@ -14,7 +14,7 @@ export default async function ProjectsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100">Projects</h1>
+        <h1 className="text-2xl font-bold text-warm-800 dark:text-warm-100">Projects</h1>
         <div className="flex items-center gap-2">
           <ReviewButton />
           <CreateProjectButton />
@@ -22,9 +22,9 @@ export default async function ProjectsPage() {
       </div>
 
       {allProjects.length === 0 ? (
-        <div className="text-center py-16 text-neutral-400">
+        <div className="text-center py-16 text-warm-400">
           <p className="text-5xl mb-4">📋</p>
-          <p className="text-lg font-semibold text-neutral-600 dark:text-neutral-300">No projects yet</p>
+          <p className="text-lg font-semibold text-warm-600 dark:text-warm-300">No projects yet</p>
           <p className="text-sm mt-1">Create your first project to organize bigger tasks!</p>
         </div>
       ) : (

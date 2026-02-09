@@ -25,8 +25,8 @@ function ToolbarButton({ onClick, active, children, title }: {
       title={title}
       className={`px-2 py-1 text-sm rounded transition-colors ${
         active
-          ? 'bg-emerald-100 dark:bg-emerald-900/40 text-emerald-700 dark:text-emerald-300'
-          : 'text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800'
+          ? 'bg-sage-100 dark:bg-sage-900/40 text-sage-700 dark:text-sage-300'
+          : 'text-warm-600 dark:text-warm-400 hover:bg-warm-100 dark:hover:bg-warm-700'
       }`}
     >
       {children}
@@ -75,9 +75,9 @@ export function TiptapEditor({ content = '', onSave, onCancel, placeholder = 'Wr
   if (!editor) return null;
 
   return (
-    <div className="border border-neutral-200 dark:border-neutral-700 rounded-xl overflow-hidden bg-white dark:bg-neutral-900 animate-fade-in">
+    <div className="border border-warm-200 dark:border-warm-700 rounded-xl overflow-hidden bg-white dark:bg-warm-800 animate-fade-in">
       {/* Toolbar */}
-      <div className="flex flex-wrap gap-0.5 px-2 py-1.5 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+      <div className="flex flex-wrap gap-0.5 px-2 py-1.5 border-b border-warm-200 dark:border-warm-700 bg-warm-50 dark:bg-warm-700/50">
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
           active={editor.isActive('heading', { level: 1 })}
@@ -94,7 +94,7 @@ export function TiptapEditor({ content = '', onSave, onCancel, placeholder = 'Wr
           title="Heading 3"
         >H3</ToolbarButton>
 
-        <div className="w-px bg-neutral-200 dark:bg-neutral-700 mx-1" />
+        <div className="w-px bg-warm-200 dark:bg-warm-600 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBold().run()}
@@ -112,7 +112,7 @@ export function TiptapEditor({ content = '', onSave, onCancel, placeholder = 'Wr
           title="Inline Code"
         ><code className="text-xs">{'{}'}</code></ToolbarButton>
 
-        <div className="w-px bg-neutral-200 dark:bg-neutral-700 mx-1" />
+        <div className="w-px bg-warm-200 dark:bg-warm-600 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBulletList().run()}
@@ -130,7 +130,7 @@ export function TiptapEditor({ content = '', onSave, onCancel, placeholder = 'Wr
           title="Checklist"
         >☑ Tasks</ToolbarButton>
 
-        <div className="w-px bg-neutral-200 dark:bg-neutral-700 mx-1" />
+        <div className="w-px bg-warm-200 dark:bg-warm-600 mx-1" />
 
         <ToolbarButton
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
@@ -157,18 +157,18 @@ export function TiptapEditor({ content = '', onSave, onCancel, placeholder = 'Wr
       <EditorContent editor={editor} />
 
       {/* Actions */}
-      <div className="flex gap-2 justify-end px-3 py-2 border-t border-neutral-200 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800/50">
+      <div className="flex gap-2 justify-end px-3 py-2 border-t border-warm-200 dark:border-warm-700 bg-warm-50 dark:bg-warm-700/50">
         <button
           type="button"
           onClick={onCancel}
-          className="px-3 py-1.5 text-sm rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="px-3 py-1.5 text-sm rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors"
         >
           Cancel
         </button>
         <button
           type="button"
           onClick={handleSave}
-          className="px-4 py-1.5 text-sm bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl font-medium transition-colors"
+          className="px-4 py-1.5 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium transition-colors"
         >
           Save note
         </button>

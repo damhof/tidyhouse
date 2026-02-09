@@ -142,9 +142,9 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
     return (
       <div className="text-center py-20 space-y-4">
         <p className="text-5xl">🎉</p>
-        <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-100">No projects to review</h2>
-        <p className="text-neutral-500 text-sm">All projects are in Backlog or Done status.</p>
-        <Link href="/projects" className="inline-block mt-4 px-4 py-2 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors">
+        <h2 className="text-xl font-bold text-warm-800 dark:text-warm-100">No projects to review</h2>
+        <p className="text-warm-500 text-sm">All projects are in Backlog or Done status.</p>
+        <Link href="/projects" className="inline-block mt-4 px-4 py-2 bg-sage-500 text-white rounded-xl font-medium hover:bg-sage-600 transition-colors">
           ← Back to Projects
         </Link>
       </div>
@@ -158,19 +158,19 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
       <div className="space-y-6 py-4">
         <div className="text-center">
           <p className="text-5xl mb-3">✅</p>
-          <h2 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100">Review Complete</h2>
-          <p className="text-neutral-500 mt-1">Reviewed {total} project{total !== 1 ? 's' : ''}</p>
+          <h2 className="text-2xl font-bold text-warm-800 dark:text-warm-100">Review Complete</h2>
+          <p className="text-warm-500 mt-1">Reviewed {total} project{total !== 1 ? 's' : ''}</p>
         </div>
 
         {changedProjects.length > 0 ? (
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-neutral-200 dark:border-neutral-800 space-y-3">
-            <h3 className="font-semibold text-neutral-700 dark:text-neutral-200">Changes made</h3>
+          <div className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-sm border border-warm-200 dark:border-warm-700 space-y-3">
+            <h3 className="font-semibold text-warm-700 dark:text-warm-200">Changes made</h3>
             {changedProjects.map((p) => {
               const c = changes[p.id];
               return (
-                <div key={p.id} className="border-b border-neutral-100 dark:border-neutral-800 last:border-0 pb-2 last:pb-0">
-                  <p className="font-medium text-neutral-800 dark:text-neutral-100">{p.title}</p>
-                  <div className="text-sm text-neutral-500 space-y-0.5 mt-1">
+                <div key={p.id} className="border-b border-warm-100 dark:border-warm-700 last:border-0 pb-2 last:pb-0">
+                  <p className="font-medium text-warm-800 dark:text-warm-100">{p.title}</p>
+                  <div className="text-sm text-warm-500 space-y-0.5 mt-1">
                     {c.statusChanged && <p>Status → {c.statusChanged}</p>}
                     {c.noteAdded && <p>📝 Note added</p>}
                     {c.tasksAdded && c.tasksAdded.length > 0 && (
@@ -182,13 +182,13 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
             })}
           </div>
         ) : (
-          <div className="bg-white dark:bg-neutral-900 rounded-2xl p-5 shadow-sm border border-neutral-200 dark:border-neutral-800 text-center text-neutral-500 text-sm">
+          <div className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-sm border border-warm-200 dark:border-warm-700 text-center text-warm-500 text-sm">
             No changes were made during this review.
           </div>
         )}
 
         <div className="flex gap-3 justify-center">
-          <Link href="/projects" className="px-5 py-2.5 bg-emerald-500 text-white rounded-xl font-medium hover:bg-emerald-600 transition-colors">
+          <Link href="/projects" className="px-5 py-2.5 bg-sage-500 text-white rounded-xl font-medium hover:bg-sage-600 transition-colors">
             ← Back to Projects
           </Link>
         </div>
@@ -200,45 +200,45 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
   return (
     <div className="space-y-5 py-4">
       {/* Progress bar */}
-      <div className="flex items-center justify-between text-sm text-neutral-500 dark:text-neutral-400">
-        <Link href="/projects" className="text-emerald-600 dark:text-emerald-400 hover:underline">← Exit review</Link>
+      <div className="flex items-center justify-between text-sm text-warm-500 dark:text-warm-400">
+        <Link href="/projects" className="text-sage-600 dark:text-sage-400 hover:underline">← Exit review</Link>
         <span className="font-medium">Project {currentIndex + 1} of {total}</span>
       </div>
-      <div className="h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+      <div className="h-2 bg-warm-200 dark:bg-warm-600 rounded-full overflow-hidden">
         <div
-          className="h-full bg-emerald-500 rounded-full transition-all duration-300"
+          className="h-full bg-sage-500 rounded-full transition-all duration-300"
           style={{ width: `${((currentIndex + 1) / total) * 100}%` }}
         />
       </div>
 
       {/* Project card */}
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl p-6 shadow-sm border border-neutral-200 dark:border-neutral-800 space-y-5">
+      <div className="bg-white dark:bg-warm-800 rounded-2xl p-6 shadow-sm border border-warm-200 dark:border-warm-700 space-y-5">
         {/* Title & meta */}
         <div>
           <div className="flex items-center gap-2 mb-1 flex-wrap">
-            <span className="text-xs px-2 py-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 font-medium">
+            <span className="text-xs px-2 py-0.5 rounded-full bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 font-medium">
               {project.status}
             </span>
             <span className="text-xs">{priorityLabel[project.priority] || project.priority}</span>
           </div>
-          <h2 className="text-xl font-bold text-neutral-800 dark:text-neutral-100">{project.title}</h2>
+          <h2 className="text-xl font-bold text-warm-800 dark:text-warm-100">{project.title}</h2>
           {project.description && (
-            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{project.description}</p>
+            <p className="text-sm text-warm-500 dark:text-warm-400 mt-1">{project.description}</p>
           )}
         </div>
 
         {/* Task progress */}
         <div>
           <div className="flex items-center justify-between text-sm mb-1.5">
-            <span className="font-medium text-neutral-700 dark:text-neutral-200">Tasks</span>
-            <span className="text-neutral-500">
+            <span className="font-medium text-warm-700 dark:text-warm-200">Tasks</span>
+            <span className="text-warm-500">
               {project.tasksTotal > 0 ? `${project.tasksDone}/${project.tasksTotal} done` : 'No tasks'}
             </span>
           </div>
           {project.tasksTotal > 0 && (
-            <div className="h-2 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-warm-200 dark:bg-warm-600 rounded-full overflow-hidden">
               <div
-                className="h-full bg-emerald-500 rounded-full transition-all"
+                className="h-full bg-sage-500 rounded-full transition-all"
                 style={{ width: `${(project.tasksDone / project.tasksTotal) * 100}%` }}
               />
             </div>
@@ -248,11 +248,11 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
         {/* Latest note preview */}
         {project.latestNoteHtml && (
           <div>
-            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">
+            <p className="text-xs font-medium text-warm-500 dark:text-warm-400 mb-1">
               Last note · {project.latestNoteDate ? new Date(project.latestNoteDate).toLocaleDateString() : ''}
             </p>
             <div
-              className="prose prose-sm dark:prose-invert max-w-none text-sm bg-neutral-50 dark:bg-neutral-800/50 rounded-xl px-4 py-3 line-clamp-4"
+              className="prose prose-sm dark:prose-invert max-w-none text-sm bg-warm-50 dark:bg-warm-700/50 rounded-xl px-4 py-3 line-clamp-4"
               dangerouslySetInnerHTML={{ __html: project.latestNoteHtml }}
             />
           </div>
@@ -261,10 +261,10 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
         {/* Recent activity */}
         {project.recentActivity.length > 0 && (
           <div>
-            <p className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-1">Recent activity</p>
+            <p className="text-xs font-medium text-warm-500 dark:text-warm-400 mb-1">Recent activity</p>
             <div className="space-y-1">
               {project.recentActivity.slice(0, 3).map((a, i) => (
-                <p key={i} className="text-xs text-neutral-500">
+                <p key={i} className="text-xs text-warm-500">
                   {a.details} · {new Date(a.createdAt).toLocaleDateString()}
                 </p>
               ))}
@@ -272,15 +272,15 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
           </div>
         )}
 
-        <hr className="border-neutral-200 dark:border-neutral-700" />
+        <hr className="border-warm-200 dark:border-warm-700" />
 
         {/* Status update */}
         <div>
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200 block mb-1.5">Update status</label>
+          <label className="text-sm font-medium text-warm-700 dark:text-warm-200 block mb-1.5">Update status</label>
           <select
             value={selectedStatus ?? project.status}
             onChange={(e) => setSelectedStatus(e.target.value)}
-            className="w-full px-3 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full px-3 py-2.5 rounded-xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-700 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
           >
             {statusOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -290,7 +290,7 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
 
         {/* Add note */}
         <div>
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200 block mb-1.5">Add a note</label>
+          <label className="text-sm font-medium text-warm-700 dark:text-warm-200 block mb-1.5">Add a note</label>
           {showEditor ? (
             <TiptapEditor
               onSave={handleNoteSave}
@@ -300,19 +300,19 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
           ) : (
             <button
               onClick={() => setShowEditor(true)}
-              className="w-full p-3 rounded-xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 text-neutral-500 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all text-sm"
+              className="w-full p-3 rounded-xl border-2 border-dashed border-warm-300 dark:border-warm-700 text-warm-500 hover:border-sage-400 hover:text-sage-600 dark:hover:text-sage-400 transition-all text-sm"
             >
               + Write a note
             </button>
           )}
           {changes[project.id]?.noteAdded && (
-            <p className="text-xs text-emerald-600 mt-1">✓ Note saved</p>
+            <p className="text-xs text-sage-600 mt-1">✓ Note saved</p>
           )}
         </div>
 
         {/* Add tasks */}
         <div>
-          <label className="text-sm font-medium text-neutral-700 dark:text-neutral-200 block mb-1.5">Add tasks</label>
+          <label className="text-sm font-medium text-warm-700 dark:text-warm-200 block mb-1.5">Add tasks</label>
           <div className="flex gap-2">
             <input
               type="text"
@@ -320,11 +320,11 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
               onChange={(e) => setNewTaskInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
               placeholder="New task..."
-              className="flex-1 px-3 py-2.5 rounded-xl border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="flex-1 px-3 py-2.5 rounded-xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-700 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
             />
             <button
               onClick={handleAddTask}
-              className="px-4 py-2.5 bg-emerald-500 text-white rounded-xl text-sm font-medium hover:bg-emerald-600 transition-colors"
+              className="px-4 py-2.5 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 transition-colors"
             >
               Add
             </button>
@@ -332,7 +332,7 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
           {pendingTasks.length > 0 && (
             <div className="mt-2 space-y-1">
               {pendingTasks.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-300">
+                <div key={i} className="flex items-center gap-2 text-sm text-warm-600 dark:text-warm-300">
                   <span>➕</span>
                   <span>{t}</span>
                   <button
@@ -352,14 +352,14 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
       <div className="flex gap-3">
         <button
           onClick={handleSkip}
-          className="flex-1 py-3 rounded-xl border border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-300 font-medium hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+          className="flex-1 py-3 rounded-xl border border-warm-200 dark:border-warm-700 text-warm-600 dark:text-warm-300 font-medium hover:bg-warm-50 dark:hover:bg-warm-700 transition-colors"
         >
           Skip
         </button>
         <button
           onClick={handleNext}
           disabled={saving}
-          className="flex-1 py-3 rounded-xl bg-emerald-500 text-white font-medium hover:bg-emerald-600 disabled:opacity-50 transition-colors"
+          className="flex-1 py-3 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 disabled:opacity-50 transition-colors"
         >
           {saving ? 'Saving...' : currentIndex < total - 1 ? 'Next →' : 'Finish ✓'}
         </button>

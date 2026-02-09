@@ -19,8 +19,8 @@ export function ReviewButton() {
       href="/projects/review"
       className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
         isMonday
-          ? 'bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm'
-          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+          ? 'bg-sage-500 text-white hover:bg-sage-600 shadow-sm'
+          : 'bg-warm-100 dark:bg-warm-700 text-warm-700 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'
       }`}
     >
       📋 {isMonday ? 'Start Monday Review' : 'Review Projects'}

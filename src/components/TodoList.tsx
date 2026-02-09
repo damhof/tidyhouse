@@ -28,14 +28,14 @@ export function TodoList({ todos, users, projects, label, defaultCollapsed = fal
   return (
     <div>
       <button onClick={() => setCollapsed(!collapsed)}
-        className="flex items-center gap-2 text-sm font-semibold text-neutral-500 dark:text-neutral-400 mb-3 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors">
+        className="flex items-center gap-2 text-sm font-semibold text-warm-500 dark:text-warm-400 mb-3 hover:text-warm-700 dark:hover:text-warm-200 transition-colors">
         <span className={`transition-transform duration-200 ${collapsed ? '' : 'rotate-90'}`}>▶</span>
         {label} ({todos.length})
       </button>
       {!collapsed && (
         <div className="space-y-2 animate-fade-in">
           {todos.length === 0 && (
-            <div className="text-center py-10 text-neutral-400">
+            <div className="text-center py-10 text-warm-400">
               <p className="text-4xl mb-3">🎉</p>
               <p className="font-medium">All done! Nothing here.</p>
               <p className="text-sm mt-1">Time for a break ☕</p>
@@ -55,7 +55,7 @@ export function TodoList({ todos, users, projects, label, defaultCollapsed = fal
                 className={`flex items-start gap-3 rounded-2xl p-4 shadow-sm border group hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 ${
                   todo.isProjectTask
                     ? 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50'
-                    : 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800'
+                    : 'bg-white dark:bg-warm-800 border-warm-200 dark:border-warm-700'
                 } ${isCompleting ? 'scale-95 opacity-50' : ''}`}>
                 <button
                   onClick={async () => {
@@ -70,7 +70,7 @@ export function TodoList({ todos, users, projects, label, defaultCollapsed = fal
                     setTimeout(() => { setCompleting(null); router.refresh(); }, 300);
                   }}
                   className={`w-6 h-6 mt-0.5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
-                    todo.completed ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-neutral-300 dark:border-neutral-600 hover:border-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+                    todo.completed ? 'bg-sage-500 border-sage-500 text-white' : 'border-warm-300 dark:border-warm-500 hover:border-sage-400 hover:bg-sage-50 dark:hover:bg-sage-900/20'
                   }`}>
                   {todo.completed && <span className="text-xs animate-checkmark">✓</span>}
                 </button>
@@ -79,7 +79,7 @@ export function TodoList({ todos, users, projects, label, defaultCollapsed = fal
                     {todo.priority && priorityDot[todo.priority] && (
                       <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${priorityDot[todo.priority]}`} title={`${todo.priority} priority`} />
                     )}
-                    <p className={`font-medium ${todo.completed ? 'line-through text-neutral-400' : 'text-neutral-800 dark:text-neutral-100'}`}>{todo.title}</p>
+                    <p className={`font-medium ${todo.completed ? 'line-through text-warm-400' : 'text-warm-800 dark:text-warm-100'}`}>{todo.title}</p>
                     {todo.isProjectTask && todo.projectTitle && (
                       <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
                         📋 {todo.projectTitle}
@@ -91,13 +91,13 @@ export function TodoList({ todos, users, projects, label, defaultCollapsed = fal
                       </span>
                     )}
                   </div>
-                  {todo.notes && <p className="text-xs text-neutral-500 mt-1 line-clamp-2">{todo.notes}</p>}
+                  {todo.notes && <p className="text-xs text-warm-500 mt-1 line-clamp-2">{todo.notes}</p>}
                   <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                     {todo.dueDate && (
                       <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                         new Date(todo.dueDate) < new Date() && !todo.completed
                           ? 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
-                          : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500'
+                          : 'bg-warm-100 dark:bg-warm-700 text-warm-500'
                       }`}>📅 {todo.dueDate}</span>
                     )}
                     {todo.assigneeId && userMap[todo.assigneeId] && (
@@ -112,7 +112,7 @@ export function TodoList({ todos, users, projects, label, defaultCollapsed = fal
                 </div>
                 {!todo.isProjectTask && (
                   <button onClick={async () => { await deleteTodo(todo.id); router.refresh(); }}
-                    className="opacity-0 group-hover:opacity-100 text-neutral-400 hover:text-red-500 transition-all text-sm min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20">
+                    className="opacity-0 group-hover:opacity-100 text-warm-400 hover:text-red-500 transition-all text-sm min-w-[40px] min-h-[40px] flex items-center justify-center rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20">
                     🗑
                   </button>
                 )}

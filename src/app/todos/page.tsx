@@ -89,7 +89,7 @@ export default async function TodosPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-neutral-800 dark:text-neutral-100">To-Do&apos;s</h1>
+        <h1 className="text-2xl font-bold text-warm-800 dark:text-warm-100">To-Do&apos;s</h1>
       </div>
 
       <AddTodoForm users={allUsers} projects={allProjects} />
@@ -107,9 +107,9 @@ export default async function TodosPage() {
       {usedCategories.length === 0 && (
         <>
           {activeTodos.length === 0 && completedTodos.length === 0 && (
-            <div className="text-center py-16 text-neutral-400">
+            <div className="text-center py-16 text-warm-400">
               <p className="text-5xl mb-4">📝</p>
-              <p className="text-lg font-semibold text-neutral-600 dark:text-neutral-300">No to-do&apos;s yet</p>
+              <p className="text-lg font-semibold text-warm-600 dark:text-warm-300">No to-do&apos;s yet</p>
               <p className="text-sm mt-1">Add your first task above to get started!</p>
             </div>
           )}

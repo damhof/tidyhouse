@@ -39,8 +39,8 @@ export function TodoCategoryFilter({
           onClick={() => setFilter(null)}
           className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
             filter === null
-              ? 'bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900'
-              : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+              ? 'bg-warm-700 dark:bg-warm-100 text-white dark:text-warm-900'
+              : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-400 hover:bg-warm-200 dark:hover:bg-warm-600'
           }`}
         >
           All ({activeTodos.length})
@@ -53,7 +53,7 @@ export function TodoCategoryFilter({
               onClick={() => setFilter(filter === cat.value ? null : cat.value)}
               className={`text-xs px-3 py-1.5 rounded-full font-medium transition-all ${
                 filter === cat.value
-                  ? 'bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900'
+                  ? 'bg-warm-700 dark:bg-warm-100 text-white dark:text-warm-900'
                   : `${cat.color} hover:opacity-80`
               }`}
             >

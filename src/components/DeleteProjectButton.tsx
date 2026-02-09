@@ -15,14 +15,14 @@ export function DeleteProjectButton({ projectId, projectTitle }: { projectId: nu
         <button onClick={async () => { await deleteProject(projectId); router.push('/projects'); }}
           className="px-3 py-1.5 text-xs bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors">Yes</button>
         <button onClick={() => setConfirming(false)}
-          className="px-3 py-1.5 text-xs bg-neutral-100 dark:bg-neutral-800 rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">No</button>
+          className="px-3 py-1.5 text-xs bg-warm-100 dark:bg-warm-700 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">No</button>
       </div>
     );
   }
 
   return (
     <button onClick={() => setConfirming(true)}
-      className="w-10 h-10 flex items-center justify-center rounded-xl text-neutral-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+      className="w-10 h-10 flex items-center justify-center rounded-xl text-warm-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
       title="Delete project">
       🗑
     </button>

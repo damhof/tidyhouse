@@ -51,7 +51,7 @@ export function ProjectNoteList({ notes, userMap }: { notes: Note[]; userMap: Re
 
   if (notes.length === 0) {
     return (
-      <div className="text-center py-8 text-neutral-400">
+      <div className="text-center py-8 text-warm-400">
         <p className="text-3xl mb-2">📝</p>
         <p className="text-sm">No notes yet. Add one above!</p>
       </div>
@@ -69,7 +69,7 @@ export function ProjectNoteList({ notes, userMap }: { notes: Note[]; userMap: Re
 
         return (
           <div key={note.id}
-            className={`bg-neutral-50 dark:bg-neutral-800/50 rounded-xl overflow-hidden group border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 transition-all ${isDeleting ? 'opacity-30 scale-95' : ''}`}>
+            className={`bg-warm-50 dark:bg-warm-700/50 rounded-xl overflow-hidden group border border-transparent hover:border-warm-200 dark:hover:border-warm-700 transition-all ${isDeleting ? 'opacity-30 scale-95' : ''}`}>
             {isEditing ? (
               <TiptapEditor
                 content={displayHtml}
@@ -84,21 +84,21 @@ export function ProjectNoteList({ notes, userMap }: { notes: Note[]; userMap: Re
                     <span className="text-lg" title={user.name}>{user.avatarEmoji}</span>
                   )}
                   <div className="flex-1 min-w-0">
-                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    <span className="text-sm font-medium text-warm-700 dark:text-warm-300">
                       {user?.name || 'Unknown'}
                     </span>
-                    <span className="text-xs text-neutral-400 ml-2" title={formatDate(note.createdAt)}>
+                    <span className="text-xs text-warm-400 ml-2" title={formatDate(note.createdAt)}>
                       {timeAgo(note.createdAt)}
                     </span>
                     {note.updatedAt && (
-                      <span className="text-xs text-neutral-400 ml-1" title={formatDate(note.updatedAt)}>
+                      <span className="text-xs text-warm-400 ml-1" title={formatDate(note.updatedAt)}>
                         (edited)
                       </span>
                     )}
                   </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button onClick={() => { setEditingId(note.id); }}
-                      className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
+                      className="text-xs px-2 py-1 rounded-lg text-warm-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
                       Edit
                     </button>
                     {isConfirmingDelete ? (
@@ -108,13 +108,13 @@ export function ProjectNoteList({ notes, userMap }: { notes: Note[]; userMap: Re
                           Confirm
                         </button>
                         <button onClick={() => setConfirmDeleteId(null)}
-                          className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                          className="text-xs px-2 py-1 rounded-lg text-warm-500 hover:bg-warm-100 dark:hover:bg-warm-700">
                           Cancel
                         </button>
                       </div>
                     ) : (
                       <button onClick={() => setConfirmDeleteId(note.id)}
-                        className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                        className="text-xs px-2 py-1 rounded-lg text-warm-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
                         Delete
                       </button>
                     )}

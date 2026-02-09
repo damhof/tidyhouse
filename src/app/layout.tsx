@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#4A8C4A',
+  themeColor: '#7C9A82',
   width: 'device-width',
   initialScale: 1,
 };
@@ -42,10 +42,14 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   if (userId) {
     user = db.select().from(users).where(eq(users.id, userId)).get() || null;
   }
+  const allUsers = db.select().from(users).all();
 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
@@ -58,7 +62,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <>
               <SideRail />
               <div className="md:ml-20 lg:ml-56 min-h-screen pb-20 md:pb-0">
-                <Header userName={user.name} userEmoji={user.avatarEmoji} userId={user.id} />
+                <Header userName={user.name} userEmoji={user.avatarEmoji} userId={user.id} allUsers={allUsers} />
                 <main className="px-4 py-6 max-w-6xl mx-auto">
                   {children}
                 </main>

@@ -42,7 +42,7 @@ export function ToastContainer() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`pointer-events-auto flex items-center gap-3 bg-neutral-800 dark:bg-neutral-100 text-white dark:text-neutral-900 px-4 py-3 rounded-xl shadow-lg max-w-sm w-full transition-all duration-300 ${
+          className={`pointer-events-auto flex items-center gap-3 bg-warm-700 dark:bg-warm-100 text-white dark:text-warm-900 px-4 py-3 rounded-xl shadow-lg max-w-sm w-full transition-all duration-300 ${
             toast.exiting ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
           }`}
           style={{ animation: toast.exiting ? undefined : 'slideUp 0.3s ease-out' }}
@@ -58,7 +58,7 @@ export function ToastContainer() {
           )}
           <button
             onClick={() => dismiss(toast.id)}
-            className="text-neutral-400 dark:text-neutral-500 hover:text-neutral-200 dark:hover:text-neutral-700 text-lg leading-none"
+            className="text-warm-400 dark:text-warm-500 hover:text-warm-200 dark:hover:text-warm-700 text-lg leading-none"
           >
             ×
           </button>

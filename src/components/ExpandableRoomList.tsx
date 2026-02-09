@@ -168,7 +168,7 @@ function ChoreRow({ chore, onComplete }: { chore: Chore; onComplete: () => void 
       </div>
 
       <div
-        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-neutral-50 dark:hover:bg-neutral-800/50 relative bg-white dark:bg-neutral-900
+        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800
           ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}
           ${isSwiping ? '' : 'duration-300'}`}
         style={{ transform: `translateX(${swipeX}px)` }}
@@ -181,10 +181,10 @@ function ChoreRow({ chore, onComplete }: { chore: Chore; onComplete: () => void 
           style={{ backgroundColor: justCompleted ? '#4CAF50' : stalenessColor(chore.level) }}
         />
         <div className="flex-1 min-w-0">
-          <p className={`text-sm font-medium transition-all duration-500 ${justCompleted ? 'text-neutral-400 line-through' : 'text-neutral-800 dark:text-neutral-100'}`}>
+          <p className={`text-sm font-medium transition-all duration-500 ${justCompleted ? 'text-warm-400 line-through' : 'text-warm-800 dark:text-warm-100'}`}>
             {chore.name}
           </p>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-warm-400">
             Every {chore.frequencyDays}d · {chore.effort} · {justCompleted ? 'Just now' : ago}
           </p>
         </div>
@@ -204,7 +204,7 @@ function ChoresList({ room, onComplete }: { room: Room; onComplete: (choreId: nu
         <ChoreRow key={chore.id} chore={chore} onComplete={() => onComplete(chore.id)} />
       ))}
       {sortedChores.length === 0 && (
-        <div className="text-center py-8 text-neutral-400">
+        <div className="text-center py-8 text-warm-400">
           <p className="text-3xl mb-2">✨</p>
           <p className="text-sm font-medium">No chores in this room yet</p>
         </div>
@@ -279,26 +279,26 @@ function RoomCard({ room, isSelected, onClick }: { room: Room; isSelected: boole
 
         {/* Content */}
         <div className="flex-1 min-w-0">
-          <h3 className="font-bold text-base text-neutral-800 dark:text-neutral-100 leading-tight">
+          <h3 className="font-bold text-base text-warm-800 dark:text-warm-100 leading-tight">
             {room.name}
           </h3>
           <p className={`text-sm mt-0.5 font-medium ${summary.isClean ? 'text-green-600 dark:text-green-400' : 'text-amber-600 dark:text-amber-400'}`}>
             {summary.text}
           </p>
           {lastActivity && (
-            <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
+            <p className="text-xs text-warm-400 dark:text-warm-500 mt-1">
               Last activity {formatTimeAgo(lastActivity)}
             </p>
           )}
           {!lastActivity && (
-            <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">
+            <p className="text-xs text-warm-400 dark:text-warm-500 mt-1">
               No activity yet
             </p>
           )}
         </div>
 
         {/* Expand indicator (mobile only) */}
-        <span className={`text-neutral-400 transition-transform duration-300 md:hidden text-xs mt-1 ${isSelected ? 'rotate-180' : ''}`}>
+        <span className={`text-warm-400 transition-transform duration-300 md:hidden text-xs mt-1 ${isSelected ? 'rotate-180' : ''}`}>
           ▼
         </span>
       </div>
@@ -342,9 +342,9 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
 
       {/* Empty state */}
       {rooms.length === 0 && (
-        <div className="text-center py-16 text-neutral-400">
+        <div className="text-center py-16 text-warm-400">
           <p className="text-5xl mb-4">🏠</p>
-          <p className="text-lg font-semibold text-neutral-600 dark:text-neutral-300">No rooms yet</p>
+          <p className="text-lg font-semibold text-warm-600 dark:text-warm-300">No rooms yet</p>
           <p className="text-sm mt-1">Add some rooms to start tracking chores!</p>
         </div>
       )}
@@ -369,7 +369,7 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
                 onClick={() => setSelectedId(isExpanded ? null : room.id)}
               />
               <ExpandableSection isExpanded={isExpanded}>
-                <div className="mt-1 bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 p-3">
+                <div className="mt-1 bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 p-3">
                   <ChoresList room={room} onComplete={(choreId) => handleChoreComplete(room.id, choreId)} />
                 </div>
               </ExpandableSection>
@@ -394,23 +394,23 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
           <div className="fixed inset-0 z-50 flex justify-end" onClick={() => setSelectedId(null)}>
             <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" />
             <div
-              className="relative w-[380px] max-w-[85vw] h-full bg-white dark:bg-neutral-900 shadow-2xl overflow-y-auto animate-slide-in-right"
+              className="relative w-[380px] max-w-[85vw] h-full bg-white dark:bg-warm-800 shadow-2xl overflow-y-auto animate-slide-in-right"
               onClick={e => e.stopPropagation()}
             >
               <div
-                className="flex items-center gap-3 p-5 border-b border-neutral-100 dark:border-neutral-800 sticky top-0 z-10"
+                className="flex items-center gap-3 p-5 border-b border-warm-100 dark:border-warm-700 sticky top-0 z-10"
                 style={{ backgroundColor: urgencyGradientBg(selectedRoom.score, 0.15) }}
               >
                 <div style={{ color: urgencyIconColor(selectedRoom.score) }}>
                   <RoomIcon roomName={selectedRoom.name} fallbackEmoji={selectedRoom.icon} size={32} />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">{selectedRoom.name}</h2>
-                  <p className="text-xs text-neutral-500">
+                  <h2 className="text-lg font-bold text-warm-800 dark:text-warm-100">{selectedRoom.name}</h2>
+                  <p className="text-xs text-warm-500">
                     {getChoreSummary(selectedRoom).text}
                   </p>
                 </div>
-                <button onClick={() => setSelectedId(null)} className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-400">
+                <button onClick={() => setSelectedId(null)} className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors text-warm-400">
                   ✕
                 </button>
               </div>
@@ -437,17 +437,17 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
 
         <div className="sticky top-20">
           {selectedRoom ? (
-            <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-200 dark:border-neutral-800 shadow-lg overflow-hidden transition-all duration-300">
+            <div className="bg-white dark:bg-warm-800 rounded-2xl border border-warm-200 dark:border-warm-700 shadow-lg overflow-hidden transition-all duration-300">
               <div
-                className="flex items-center gap-3 p-5 border-b border-neutral-100 dark:border-neutral-800"
+                className="flex items-center gap-3 p-5 border-b border-warm-100 dark:border-warm-700"
                 style={{ backgroundColor: urgencyGradientBg(selectedRoom.score, 0.12) }}
               >
                 <div style={{ color: urgencyIconColor(selectedRoom.score) }}>
                   <RoomIcon roomName={selectedRoom.name} fallbackEmoji={selectedRoom.icon} size={32} />
                 </div>
                 <div className="flex-1">
-                  <h2 className="text-lg font-bold text-neutral-800 dark:text-neutral-100">{selectedRoom.name}</h2>
-                  <p className="text-xs text-neutral-500">{getChoreSummary(selectedRoom).text}</p>
+                  <h2 className="text-lg font-bold text-warm-800 dark:text-warm-100">{selectedRoom.name}</h2>
+                  <p className="text-xs text-warm-500">{getChoreSummary(selectedRoom).text}</p>
                 </div>
               </div>
               <div className="p-4">
@@ -455,9 +455,9 @@ export function ExpandableRoomList({ rooms: initialRooms }: { rooms: Room[] }) {
               </div>
             </div>
           ) : (
-            <div className="bg-neutral-50 dark:bg-neutral-900/50 rounded-2xl border border-dashed border-neutral-300 dark:border-neutral-700 p-12 text-center">
+            <div className="bg-warm-50 dark:bg-warm-800/50 rounded-2xl border border-dashed border-warm-300 dark:border-warm-700 p-12 text-center">
               <p className="text-4xl mb-3">👈</p>
-              <p className="text-neutral-500 dark:text-neutral-400 font-medium">Select a room to see its chores</p>
+              <p className="text-warm-500 dark:text-warm-400 font-medium">Select a room to see its chores</p>
             </div>
           )}
         </div>

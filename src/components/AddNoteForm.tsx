@@ -18,7 +18,7 @@ export function AddNoteForm({ projectId }: { projectId: number }) {
   if (!open) {
     return (
       <button onClick={() => setOpen(true)}
-        className="w-full p-3 rounded-xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50/50 dark:hover:bg-emerald-900/10 transition-all text-sm font-medium">
+        className="w-full p-3 rounded-xl border-2 border-dashed border-warm-300 dark:border-warm-700 text-warm-500 dark:text-warm-400 hover:border-sage-400 hover:text-sage-600 dark:hover:text-sage-400 hover:bg-sage-50/50 dark:hover:bg-sage-900/10 transition-all text-sm font-medium">
         + Add note
       </button>
     );
