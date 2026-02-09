@@ -61,7 +61,7 @@ export default async function RoomDetailPage({ params }: { params: Promise<{ roo
                   {chore.lastUser && <span> by {chore.lastUser.avatarEmoji}</span>}
                 </p>
               </div>
-              <CompleteChoreButton choreId={chore.id} size="sm" />
+              <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" />
             </div>
           );
         })}

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { href: '/chores', label: 'Chores', icon: '🏠', matchAlso: '/' },
+  { href: '/chores', label: 'Chores', icon: '🏠' },
   { href: '/todos', label: 'To-Do\'s', icon: '✅' },
   { href: '/projects', label: 'Projects', icon: '📋' },
 ];
@@ -21,7 +21,7 @@ export function BottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-warm-900/90 backdrop-blur-lg border-t border-warm-200 dark:border-warm-800 md:hidden">
       <div className="flex justify-around items-center h-16">
         {navItems.map(item => {
-          const active = pathname.startsWith(item.href) || ('matchAlso' in item && item.matchAlso === pathname);
+          const active = pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href}
               className={`flex flex-col items-center justify-center min-w-[48px] min-h-[48px] rounded-2xl px-3 py-1 transition-all duration-200 ${
@@ -42,8 +42,8 @@ export function BottomNav() {
 export function SideRail() {
   const pathname = usePathname();
 
-  const renderNavItem = (item: { href: string; label: string; icon: string; matchAlso?: string }) => {
-    const active = pathname.startsWith(item.href) || (item.matchAlso === pathname);
+  const renderNavItem = (item: { href: string; label: string; icon: string }) => {
+    const active = pathname.startsWith(item.href);
     return (
       <Link key={item.href} href={item.href}
         className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 min-h-[48px] ${

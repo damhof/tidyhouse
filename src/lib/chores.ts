@@ -1,6 +1,6 @@
 import { db } from '@/db';
 import { chores, choreCompletions, rooms } from '@/db/schema';
-import { eq, desc, and, gte, sql } from 'drizzle-orm';
+import { eq, desc, gte, sql } from 'drizzle-orm';
 
 export type StalenessLevel = 'green' | 'yellow' | 'orange' | 'red';
 
@@ -86,6 +86,30 @@ export async function getDistribution(days: number) {
     .groupBy(choreCompletions.userId)
     .all();
   return completions;
+}
+
+const EFFORT_WEIGHT: Record<string, number> = { quick: 1, medium: 2, intensive: 3 };
+
+export async function getEffortDistribution(days: number) {
+  const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
+  const completions = db
+    .select({
+      userId: choreCompletions.userId,
+      choreId: choreCompletions.choreId,
+    })
+    .from(choreCompletions)
+    .where(gte(choreCompletions.completedAt, since))
+    .all();
+
+  const allChores = db.select().from(chores).all();
+  const choreMap = Object.fromEntries(allChores.map(c => [c.id, c]));
+
+  const result: Record<number, number> = {};
+  for (const c of completions) {
+    const effort = choreMap[c.choreId]?.effort || 'medium';
+    result[c.userId] = (result[c.userId] || 0) + (EFFORT_WEIGHT[effort] || 2);
+  }
+  return Object.entries(result).map(([userId, score]) => ({ userId: Number(userId), effortScore: score }));
 }
 
 export type SuggestedChore = {

@@ -1,5 +1,5 @@
 import { db } from '@/db';
-import { users, rooms, chores, choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees } from '@/db/schema';
+import { users, rooms, chores, choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees, pushSubscriptions, notificationPreferences } from '@/db/schema';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
@@ -17,6 +17,8 @@ export async function GET() {
     projectActivity: db.select().from(projectActivity).all(),
     projectTags: db.select().from(projectTags).all(),
     projectAssignees: db.select().from(projectAssignees).all(),
+    pushSubscriptions: db.select().from(pushSubscriptions).all(),
+    notificationPreferences: db.select().from(notificationPreferences).all(),
   };
 
   const json = JSON.stringify(data, null, 2);

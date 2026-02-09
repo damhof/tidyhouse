@@ -31,9 +31,9 @@ export function CreateProjectButton() {
             <textarea name="description" placeholder="Description (optional)" rows={3}
               className="w-full text-sm bg-transparent outline-none placeholder-warm-400 resize-none" />
             <div className="flex gap-3">
-              <select name="priority" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none">
+              <select name="priority" defaultValue="medium" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none">
                 <option value="low">🟢 Low</option>
-                <option value="medium" selected>🟡 Medium</option>
+                <option value="medium">🟡 Medium</option>
                 <option value="high">🟠 High</option>
                 <option value="urgent">🔴 Urgent</option>
               </select>

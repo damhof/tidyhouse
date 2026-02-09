@@ -1,7 +1,7 @@
 'use server';
 
 import { db } from '@/db';
-import { rooms, chores, choreCompletions, users, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees } from '@/db/schema';
+import { rooms, chores, choreCompletions, users, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees, pushSubscriptions, notificationPreferences } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { revalidatePath } from 'next/cache';
 
@@ -55,12 +55,13 @@ export async function reorderRooms(roomIds: number[]) {
 }
 
 // --- Chore Actions ---
-export async function createChore(roomId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive') {
+export async function createChore(roomId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null) {
   db.insert(chores).values({
     roomId,
     name,
     frequencyDays,
     effort,
+    pinnedDays: pinnedDays || null,
     createdAt: new Date().toISOString(),
   }).run();
   revalidatePath('/settings');
@@ -68,8 +69,8 @@ export async function createChore(roomId: number, name: string, frequencyDays: n
   revalidatePath('/');
 }
 
-export async function updateChore(choreId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive') {
-  db.update(chores).set({ name, frequencyDays, effort }).where(eq(chores.id, choreId)).run();
+export async function updateChore(choreId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null) {
+  db.update(chores).set({ name, frequencyDays, effort, pinnedDays: pinnedDays || null }).where(eq(chores.id, choreId)).run();
   revalidatePath('/settings');
   revalidatePath('/chores');
   revalidatePath('/');
@@ -101,6 +102,8 @@ export async function importData(jsonString: string) {
   }
 
   // Clear all tables in dependency order
+  db.run(sql`DELETE FROM push_subscriptions`);
+  db.run(sql`DELETE FROM notification_preferences`);
   db.run(sql`DELETE FROM chore_completions`);
   db.run(sql`DELETE FROM chores`);
   db.run(sql`DELETE FROM rooms`);
@@ -140,6 +143,7 @@ export async function importData(jsonString: string) {
       name: c.name,
       frequencyDays: c.frequencyDays ?? c.frequency_days,
       effort: c.effort || 'medium',
+      pinnedDays: c.pinnedDays ?? c.pinned_days ?? null,
       createdAt: c.createdAt ?? c.created_at ?? new Date().toISOString(),
     }).run();
   }
@@ -255,6 +259,37 @@ export async function importData(jsonString: string) {
       db.insert(projectAssignees).values({
         projectId: a.projectId ?? a.project_id,
         userId: a.userId ?? a.user_id,
+      }).run();
+    }
+  }
+
+  // Re-insert push subscriptions
+  if (Array.isArray(data.pushSubscriptions)) {
+    for (const s of data.pushSubscriptions) {
+      db.insert(pushSubscriptions).values({
+        id: s.id,
+        userId: s.userId ?? s.user_id,
+        endpoint: s.endpoint,
+        p256dh: s.p256dh,
+        auth: s.auth,
+        createdAt: s.createdAt ?? s.created_at ?? new Date().toISOString(),
+      }).run();
+    }
+  }
+
+  // Re-insert notification preferences
+  if (Array.isArray(data.notificationPreferences)) {
+    for (const p of data.notificationPreferences) {
+      db.insert(notificationPreferences).values({
+        userId: p.userId ?? p.user_id,
+        morningDigest: p.morningDigest ?? p.morning_digest ?? true,
+        morningDigestTime: p.morningDigestTime ?? p.morning_digest_time ?? '08:00',
+        urgencyAlerts: p.urgencyAlerts ?? p.urgency_alerts ?? true,
+        lastUrgencyAlert: p.lastUrgencyAlert ?? p.last_urgency_alert ?? null,
+        weeklySummary: p.weeklySummary ?? p.weekly_summary ?? true,
+        weeklySummaryDay: p.weeklySummaryDay ?? p.weekly_summary_day ?? 'sunday',
+        weeklySummaryTime: p.weeklySummaryTime ?? p.weekly_summary_time ?? '19:00',
+        lastWeeklySummary: p.lastWeeklySummary ?? p.last_weekly_summary ?? null,
       }).run();
     }
   }

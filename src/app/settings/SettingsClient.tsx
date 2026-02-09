@@ -19,7 +19,9 @@ import { NotificationSettings } from '@/components/NotificationSettings';
 
 type User = { id: number; name: string; avatarEmoji: string };
 type Room = { id: number; name: string; icon: string; sortOrder: number };
-type Chore = { id: number; roomId: number; name: string; frequencyDays: number; effort: string; createdAt: string };
+type Chore = { id: number; roomId: number; name: string; frequencyDays: number; effort: string; pinnedDays: string | null; createdAt: string };
+
+const DAY_LABELS_TOP = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
 const EMOJI_OPTIONS = [
   '👤', '👩', '👨', '🧑', '👧', '👦', '🧒', '👶',
@@ -57,6 +59,7 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
   const [choreName, setChoreName] = useState('');
   const [choreFreq, setChoreFreq] = useState(7);
   const [choreEffort, setChoreEffort] = useState<'quick' | 'medium' | 'intensive'>('medium');
+  const [chorePinnedDays, setChorePinnedDays] = useState<string>('');
   const [addingChoreRoom, setAddingChoreRoom] = useState<number | null>(null);
 
   // Import state
@@ -106,18 +109,19 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
 
   const handleSaveChore = async (choreId: number) => {
     if (!choreName.trim()) return;
-    await updateChore(choreId, choreName, choreFreq, choreEffort);
+    await updateChore(choreId, choreName, choreFreq, choreEffort, chorePinnedDays || null);
     setEditingChore(null);
     router.refresh();
   };
 
   const handleCreateChore = async (roomId: number) => {
     if (!choreName.trim()) return;
-    await createChore(roomId, choreName, choreFreq, choreEffort);
+    await createChore(roomId, choreName, choreFreq, choreEffort, chorePinnedDays || null);
     setAddingChoreRoom(null);
     setChoreName('');
     setChoreFreq(7);
     setChoreEffort('medium');
+    setChorePinnedDays('');
     router.refresh();
   };
 
@@ -175,6 +179,7 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
     setChoreName(c.name);
     setChoreFreq(c.frequencyDays);
     setChoreEffort(c.effort as 'quick' | 'medium' | 'intensive');
+    setChorePinnedDays(c.pinnedDays || '');
   };
 
   const startAddChore = (roomId: number) => {
@@ -182,6 +187,7 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
     setChoreName('');
     setChoreFreq(7);
     setChoreEffort('medium');
+    setChorePinnedDays('');
   };
 
   return (
@@ -354,9 +360,11 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
                           name={choreName}
                           freq={choreFreq}
                           effort={choreEffort}
+                          pinnedDays={chorePinnedDays}
                           onNameChange={setChoreName}
                           onFreqChange={setChoreFreq}
                           onEffortChange={setChoreEffort}
+                          onPinnedDaysChange={setChorePinnedDays}
                           onSave={() => handleSaveChore(chore.id)}
                           onCancel={() => setEditingChore(null)}
                         />
@@ -364,6 +372,11 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
                         <div className="flex items-center gap-3 px-6 py-2.5 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors">
                           <span className="text-sm flex-1">{chore.name}</span>
                           <span className="text-xs text-warm-400">{chore.frequencyDays}d</span>
+                          {chore.pinnedDays && (
+                            <span className="text-xs text-sage-600 dark:text-sage-400" title="Pinned days">
+                              📌 {chore.pinnedDays.split(',').map(d => DAY_LABELS_TOP[parseInt(d)]).join(', ')}
+                            </span>
+                          )}
                           <span className={`text-xs px-2 py-0.5 rounded-full ${
                             chore.effort === 'quick' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300' :
                             chore.effort === 'intensive' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300' :
@@ -381,9 +394,11 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
                       name={choreName}
                       freq={choreFreq}
                       effort={choreEffort}
+                      pinnedDays={chorePinnedDays}
                       onNameChange={setChoreName}
                       onFreqChange={setChoreFreq}
                       onEffortChange={setChoreEffort}
+                      onPinnedDaysChange={setChorePinnedDays}
                       onSave={() => handleCreateChore(room.id)}
                       onCancel={() => setAddingChoreRoom(null)}
                     />
@@ -514,11 +529,23 @@ function EditableName({ userId, name, onSave }: { userId: number; name: string; 
   );
 }
 
-function ChoreForm({ name, freq, effort, onNameChange, onFreqChange, onEffortChange, onSave, onCancel }: {
-  name: string; freq: number; effort: 'quick' | 'medium' | 'intensive';
+const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+function ChoreForm({ name, freq, effort, pinnedDays, onNameChange, onFreqChange, onEffortChange, onPinnedDaysChange, onSave, onCancel }: {
+  name: string; freq: number; effort: 'quick' | 'medium' | 'intensive'; pinnedDays: string;
   onNameChange: (v: string) => void; onFreqChange: (v: number) => void; onEffortChange: (v: 'quick' | 'medium' | 'intensive') => void;
+  onPinnedDaysChange: (v: string) => void;
   onSave: () => void; onCancel: () => void;
 }) {
+  const selectedDays = new Set(pinnedDays ? pinnedDays.split(',').map(Number) : []);
+
+  const toggleDay = (day: number) => {
+    const next = new Set(selectedDays);
+    if (next.has(day)) next.delete(day);
+    else next.add(day);
+    onPinnedDaysChange(next.size > 0 ? Array.from(next).sort().join(',') : '');
+  };
+
   return (
     <div className="px-6 py-3 space-y-2 bg-warm-50 dark:bg-warm-900">
       <input
@@ -529,7 +556,7 @@ function ChoreForm({ name, freq, effort, onNameChange, onFreqChange, onEffortCha
         onKeyDown={e => { if (e.key === 'Enter') onSave(); }}
         autoFocus
       />
-      <div className="flex gap-3 items-center">
+      <div className="flex gap-3 items-center flex-wrap">
         <label className="text-xs text-warm-500">Every</label>
         <input
           type="number"
@@ -549,6 +576,26 @@ function ChoreForm({ name, freq, effort, onNameChange, onFreqChange, onEffortCha
           <option value="medium">Medium</option>
           <option value="intensive">Intensive</option>
         </select>
+      </div>
+      {/* Day pinning */}
+      <div>
+        <label className="text-xs text-warm-500 block mb-1">Pin to days (optional)</label>
+        <div className="flex gap-1">
+          {DAY_LABELS.map((label, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => toggleDay(i)}
+              className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+                selectedDays.has(i)
+                  ? 'bg-sage-500 text-white'
+                  : 'bg-warm-200 dark:bg-warm-700 text-warm-500 dark:text-warm-400 hover:bg-warm-300 dark:hover:bg-warm-600'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
       <div className="flex gap-2">
         <button onClick={onSave} className="px-3 py-1.5 bg-sage-600 text-white rounded-lg text-xs font-medium hover:bg-sage-700">Save</button>

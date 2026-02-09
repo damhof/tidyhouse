@@ -194,6 +194,13 @@ export function ensureDb() {
     // Column already exists
   }
 
+  // Migration: add pinned_days column to chores
+  try {
+    sqlite.exec(`ALTER TABLE chores ADD COLUMN pinned_days TEXT`);
+  } catch (e) {
+    // Column already exists
+  }
+
   // Migration: add show_in_todos column to project_tasks
   try {
     sqlite.exec(`ALTER TABLE project_tasks ADD COLUMN show_in_todos INTEGER NOT NULL DEFAULT 0`);

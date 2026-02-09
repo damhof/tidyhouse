@@ -6,6 +6,7 @@ import { Header } from '@/components/Header';
 import { UserGate } from '@/components/UserGate';
 import { ServiceWorker } from '@/components/ServiceWorker';
 import { ToastContainer } from '@/components/Toast';
+import { KeyboardShortcuts } from '@/components/KeyboardShortcuts';
 import { getCurrentUserId, isAuthenticated, isAuthEnabled } from '@/lib/auth';
 import { db } from '@/db';
 import { users } from '@/db/schema';
@@ -69,6 +70,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               </div>
               <BottomNav />
               <ToastContainer />
+              <KeyboardShortcuts />
             </>
           )}
         </ThemeProvider>

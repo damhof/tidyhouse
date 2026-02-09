@@ -19,6 +19,7 @@ export const chores = sqliteTable('chores', {
   name: text('name').notNull(),
   frequencyDays: integer('frequency_days').notNull(),
   effort: text('effort', { enum: ['quick', 'medium', 'intensive'] }).notNull().default('medium'),
+  pinnedDays: text('pinned_days'),  // comma-separated day numbers (0=Sun, 1=Mon, ..., 6=Sat) or null
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
 });
 
