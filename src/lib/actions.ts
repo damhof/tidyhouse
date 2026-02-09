@@ -123,11 +123,12 @@ export async function updateProjectStatus(projectId: number, status: string) {
   revalidatePath(`/projects/${projectId}`);
 }
 
-export async function addProjectNote(projectId: number, contentMd: string) {
+export async function addProjectNote(projectId: number, contentHtml: string) {
   const userId = await requireUserId();
   db.insert(projectNotes).values({
     projectId,
-    contentMd,
+    contentMd: '',
+    contentHtml,
     createdAt: new Date().toISOString(),
     createdBy: userId,
   }).run();
@@ -199,10 +200,10 @@ export async function deleteProjectNote(noteId: number) {
   revalidatePath(`/projects/${note.projectId}`);
 }
 
-export async function updateProjectNote(noteId: number, contentMd: string) {
+export async function updateProjectNote(noteId: number, contentHtml: string) {
   const note = db.select().from(projectNotes).where(eq(projectNotes.id, noteId)).get();
   if (!note) return;
-  db.update(projectNotes).set({ contentMd }).where(eq(projectNotes.id, noteId)).run();
+  db.update(projectNotes).set({ contentHtml, updatedAt: new Date().toISOString() }).where(eq(projectNotes.id, noteId)).run();
   revalidatePath(`/projects/${note.projectId}`);
 }
 

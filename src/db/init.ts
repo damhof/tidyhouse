@@ -156,5 +156,29 @@ export function ensureDb() {
     // Column already exists
   }
 
+  // Migration: add content_html column to project_notes and updated_at
+  try {
+    sqlite.exec(`ALTER TABLE project_notes ADD COLUMN content_html TEXT`);
+  } catch (e) {
+    // Column already exists
+  }
+  try {
+    sqlite.exec(`ALTER TABLE project_notes ADD COLUMN updated_at TEXT`);
+  } catch (e) {
+    // Column already exists
+  }
+  // Migrate existing markdown notes to HTML (simple conversion)
+  try {
+    const mdNotes = sqlite.prepare(`SELECT id, content_md FROM project_notes WHERE content_html IS NULL AND content_md IS NOT NULL`).all() as any[];
+    const updateStmt = sqlite.prepare(`UPDATE project_notes SET content_html = ? WHERE id = ?`);
+    for (const note of mdNotes) {
+      // Simple conversion: wrap in paragraph tags
+      const html = note.content_md.split('\n').map((line: string) => line ? `<p>${line}</p>` : '').join('');
+      updateStmt.run(html || '<p></p>', note.id);
+    }
+  } catch (e) {
+    // ignore
+  }
+
   sqlite.close();
 }

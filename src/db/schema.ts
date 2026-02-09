@@ -70,7 +70,9 @@ export const projectNotes = sqliteTable('project_notes', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   projectId: integer('project_id').notNull().references(() => projects.id),
   contentMd: text('content_md').notNull(),
+  contentHtml: text('content_html'),
   createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+  updatedAt: text('updated_at'),
   createdBy: integer('created_by').references(() => users.id),
 });
 

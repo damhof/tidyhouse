@@ -1,11 +1,11 @@
 'use client';
 
 import { deleteProjectNote, updateProjectNote } from '@/lib/actions';
-import { renderMarkdown } from '@/lib/markdown';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { TiptapEditor } from './TiptapEditor';
 
-type Note = { id: number; contentMd: string; createdAt: string; createdBy: number | null };
+type Note = { id: number; contentMd: string; contentHtml: string | null; createdAt: string; updatedAt: string | null; createdBy: number | null };
 type User = { id: number; name: string; avatarEmoji: string };
 
 function timeAgo(dateStr: string) {
@@ -21,27 +21,29 @@ function timeAgo(dateStr: string) {
   return new Date(dateStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
+function formatDate(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('en-GB', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
 export function ProjectNoteList({ notes, userMap }: { notes: Note[]; userMap: Record<number, User> }) {
   const router = useRouter();
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [editContent, setEditContent] = useState('');
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
-  const startEdit = (note: Note) => {
-    setEditingId(note.id);
-    setEditContent(note.contentMd);
-  };
-
-  const saveEdit = async () => {
-    if (editingId === null || !editContent.trim()) return;
-    await updateProjectNote(editingId, editContent.trim());
+  const saveEdit = async (html: string) => {
+    if (editingId === null) return;
+    await updateProjectNote(editingId, html);
     setEditingId(null);
-    setEditContent('');
     router.refresh();
   };
 
   const handleDelete = async (noteId: number) => {
     setDeletingId(noteId);
+    setConfirmDeleteId(null);
     await deleteProjectNote(noteId);
     setDeletingId(null);
     router.refresh();
@@ -57,47 +59,71 @@ export function ProjectNoteList({ notes, userMap }: { notes: Note[]; userMap: Re
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {notes.map(note => {
         const isEditing = editingId === note.id;
         const isDeleting = deletingId === note.id;
+        const isConfirmingDelete = confirmDeleteId === note.id;
         const user = note.createdBy ? userMap[note.createdBy] : null;
+        const displayHtml = note.contentHtml || note.contentMd;
 
         return (
           <div key={note.id}
-            className={`bg-neutral-50 dark:bg-neutral-800/50 rounded-xl p-4 group border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 transition-all ${isDeleting ? 'opacity-30 scale-95' : ''}`}>
+            className={`bg-neutral-50 dark:bg-neutral-800/50 rounded-xl overflow-hidden group border border-transparent hover:border-neutral-200 dark:hover:border-neutral-700 transition-all ${isDeleting ? 'opacity-30 scale-95' : ''}`}>
             {isEditing ? (
-              <div className="space-y-2">
-                <textarea value={editContent} onChange={e => setEditContent(e.target.value)}
-                  rows={4} autoFocus
-                  className="w-full text-sm bg-white dark:bg-neutral-900 rounded-lg px-3 py-2 outline-none resize-none font-mono border border-neutral-200 dark:border-neutral-700 focus:border-emerald-400" />
-                <div className="flex gap-2 justify-end">
-                  <button onClick={() => setEditingId(null)}
-                    className="px-3 py-1 text-xs rounded-lg hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors">Cancel</button>
-                  <button onClick={saveEdit}
-                    className="px-3 py-1 text-xs bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-medium transition-colors">Save</button>
-                </div>
-              </div>
+              <TiptapEditor
+                content={displayHtml}
+                onSave={saveEdit}
+                onCancel={() => setEditingId(null)}
+              />
             ) : (
               <>
-                <div className="text-sm prose-sm dark:prose-invert"
-                  dangerouslySetInnerHTML={{ __html: renderMarkdown(note.contentMd) }} />
-                <div className="flex items-center justify-between mt-3 pt-2 border-t border-neutral-200/50 dark:border-neutral-700/50">
-                  <p className="text-xs text-neutral-400 flex items-center gap-1.5">
-                    {user && <span>{user.avatarEmoji}</span>}
-                    <span>{timeAgo(note.createdAt)}</span>
-                  </p>
+                {/* Note header */}
+                <div className="flex items-center gap-2 px-4 pt-3 pb-1">
+                  {user && (
+                    <span className="text-lg" title={user.name}>{user.avatarEmoji}</span>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      {user?.name || 'Unknown'}
+                    </span>
+                    <span className="text-xs text-neutral-400 ml-2" title={formatDate(note.createdAt)}>
+                      {timeAgo(note.createdAt)}
+                    </span>
+                    {note.updatedAt && (
+                      <span className="text-xs text-neutral-400 ml-1" title={formatDate(note.updatedAt)}>
+                        (edited)
+                      </span>
+                    )}
+                  </div>
                   <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <button onClick={() => startEdit(note)}
+                    <button onClick={() => { setEditingId(note.id); }}
                       className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 transition-all">
                       Edit
                     </button>
-                    <button onClick={() => handleDelete(note.id)}
-                      className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
-                      Delete
-                    </button>
+                    {isConfirmingDelete ? (
+                      <div className="flex gap-1">
+                        <button onClick={() => handleDelete(note.id)}
+                          className="text-xs px-2 py-1 rounded-lg text-red-600 bg-red-50 dark:bg-red-900/30 font-medium">
+                          Confirm
+                        </button>
+                        <button onClick={() => setConfirmDeleteId(null)}
+                          className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800">
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => setConfirmDeleteId(note.id)}
+                        className="text-xs px-2 py-1 rounded-lg text-neutral-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all">
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </div>
+
+                {/* Note content */}
+                <div className="px-4 pb-3 prose prose-sm dark:prose-invert max-w-none [&_ul[data-type=taskList]]:list-none [&_ul[data-type=taskList]]:pl-0 [&_ul[data-type=taskList]_li]:flex [&_ul[data-type=taskList]_li]:gap-2 [&_ul[data-type=taskList]_li_label]:mt-0.5"
+                  dangerouslySetInnerHTML={{ __html: displayHtml }} />
               </>
             )}
           </div>
