@@ -15,6 +15,7 @@ import {
   deleteChore,
   importData,
 } from '@/lib/settings-actions';
+import { NotificationSettings } from '@/components/NotificationSettings';
 
 type User = { id: number; name: string; avatarEmoji: string };
 type Room = { id: number; name: string; icon: string; sortOrder: number };
@@ -241,6 +242,9 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
           ))}
         </div>
       </section>
+
+      {/* Notifications */}
+      <NotificationSettings />
 
       {/* Rooms & Chores */}
       <section className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-sm border border-warm-200 dark:border-warm-700">

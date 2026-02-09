@@ -88,6 +88,23 @@ export const projectTasks = sqliteTable('project_tasks', {
   sortOrder: integer('sort_order').notNull().default(0),
 });
 
+export const pushSubscriptions = sqliteTable('push_subscriptions', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  userId: integer('user_id').notNull().references(() => users.id),
+  endpoint: text('endpoint').notNull(),
+  p256dh: text('p256dh').notNull(),
+  auth: text('auth').notNull(),
+  createdAt: text('created_at').notNull().$defaultFn(() => new Date().toISOString()),
+});
+
+export const notificationPreferences = sqliteTable('notification_preferences', {
+  userId: integer('user_id').primaryKey().references(() => users.id),
+  morningDigest: integer('morning_digest', { mode: 'boolean' }).notNull().default(true),
+  morningDigestTime: text('morning_digest_time').notNull().default('08:00'),
+  urgencyAlerts: integer('urgency_alerts', { mode: 'boolean' }).notNull().default(true),
+  lastUrgencyAlert: text('last_urgency_alert'),
+});
+
 export const projectActivity = sqliteTable('project_activity', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   projectId: integer('project_id').notNull().references(() => projects.id),

@@ -201,5 +201,24 @@ export function ensureDb() {
     // Column already exists
   }
 
+  // Migration: push notifications tables
+  sqlite.exec(`
+    CREATE TABLE IF NOT EXISTS push_subscriptions (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      endpoint TEXT NOT NULL,
+      p256dh TEXT NOT NULL,
+      auth TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS notification_preferences (
+      user_id INTEGER PRIMARY KEY REFERENCES users(id),
+      morning_digest INTEGER NOT NULL DEFAULT 1,
+      morning_digest_time TEXT NOT NULL DEFAULT '08:00',
+      urgency_alerts INTEGER NOT NULL DEFAULT 1,
+      last_urgency_alert TEXT
+    );
+  `);
+
   sqlite.close();
 }
