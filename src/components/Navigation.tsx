@@ -19,13 +19,13 @@ const secondaryItems = [
 export function BottomNav() {
   const pathname = usePathname();
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-warm-900/90 backdrop-blur-lg border-t border-warm-200 dark:border-warm-800 md:hidden">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/90 dark:bg-warm-900/90 backdrop-blur-lg border-t border-warm-200 dark:border-warm-800 md:hidden" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex justify-around items-center h-16">
         {navItems.map(item => {
           const active = pathname.startsWith(item.href);
           return (
             <Link key={item.href} href={item.href}
-              className={`flex flex-col items-center justify-center min-w-[48px] min-h-[48px] rounded-2xl px-3 py-1 transition-all duration-200 ${
+              className={`flex flex-col items-center justify-center min-w-[48px] min-h-[48px] rounded-2xl px-3 py-1 transition-all duration-200 active:scale-95 ${
                 active
                   ? 'text-sage-700 dark:text-sage-300 bg-sage-100/80 dark:bg-sage-900/30'
                   : 'text-warm-400 dark:text-warm-500 hover:text-warm-600 dark:hover:text-warm-300'

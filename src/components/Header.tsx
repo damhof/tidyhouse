@@ -56,7 +56,7 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
   const themeLabel = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'System';
 
   return (
-    <header className="sticky top-0 z-40 bg-white/80 dark:bg-warm-900/80 backdrop-blur-lg border-b border-warm-200/80 dark:border-warm-700/80 px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-40 bg-white/80 dark:bg-warm-900/80 backdrop-blur-lg border-b border-warm-200/80 dark:border-warm-700/80 px-4 py-3 flex items-center justify-between" style={{ paddingTop: `max(0.75rem, env(safe-area-inset-top))` }}>
       <h1 className="text-lg font-semibold text-sage-600 dark:text-sage-400 md:hidden tracking-tight">🏡 TidyHouse</h1>
       <div className="hidden md:block" />
       <div className="flex items-center gap-2">

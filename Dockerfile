@@ -13,6 +13,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV DATABASE_URL=/data/tidyhouse.db
 RUN mkdir -p /data && npm run build
+RUN sed -i "s/__BUILD_HASH__/$(date +%s)/" public/sw.js
 
 FROM base AS runner
 WORKDIR /app

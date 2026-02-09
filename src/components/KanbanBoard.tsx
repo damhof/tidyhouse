@@ -1,9 +1,10 @@
 'use client';
 
-import { updateProjectStatus } from '@/lib/actions';
+import { updateProjectStatus, updateProjectPriority } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
-import { useState, DragEvent } from 'react';
+import { useState, useCallback, useRef, DragEvent } from 'react';
 import Link from 'next/link';
+import { ContextMenu } from './ContextMenu';
 
 type Project = {
   id: number; title: string; description: string | null;
@@ -126,13 +127,52 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
   onDragStart?: (e: DragEvent<HTMLDivElement>) => void;
   onDragEnd?: () => void;
 }) {
+  const router = useRouter();
   const pi = priorityIcon[project.priority] || '🟡';
+  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const lpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lpStart = useRef<{ x: number; y: number } | null>(null);
+  const lpTriggered = useRef(false);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    const t = e.touches[0];
+    lpStart.current = { x: t.clientX, y: t.clientY };
+    lpTriggered.current = false;
+    lpTimer.current = setTimeout(() => {
+      lpTriggered.current = true;
+      setCtxMenu({ x: t.clientX, y: t.clientY });
+    }, 500);
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!lpStart.current) return;
+    const t = e.touches[0];
+    if (Math.abs(t.clientX - lpStart.current.x) > 10 || Math.abs(t.clientY - lpStart.current.y) > 10) {
+      if (lpTimer.current) clearTimeout(lpTimer.current);
+    }
+  }, []);
+
+  const clearLp = useCallback(() => {
+    if (lpTimer.current) clearTimeout(lpTimer.current);
+    lpStart.current = null;
+  }, []);
+
+  const statusOptions = Object.entries(statusConfig).filter(([k]) => k !== project.status);
+  const priorityOptions = ['low', 'medium', 'high', 'urgent'].filter(p => p !== project.priority);
+
   return (
+    <>
     <div
       draggable={draggable}
-      onDragStart={onDragStart as any}
+      onDragStart={onDragStart as React.DragEventHandler<HTMLDivElement>}
       onDragEnd={onDragEnd}
-      className={`block bg-white dark:bg-warm-800 rounded-xl p-4 shadow-sm border border-warm-200 dark:border-warm-700 transition-all duration-200 ${
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={clearLp}
+      onTouchCancel={clearLp}
+      onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }); }}
+      onClick={(e) => { if (lpTriggered.current) { e.preventDefault(); e.stopPropagation(); } }}
+      className={`block bg-white dark:bg-warm-800 rounded-xl p-4 shadow-sm border border-warm-200 dark:border-warm-700 transition-all duration-200 card-interactive ${
         draggable ? 'cursor-grab active:cursor-grabbing' : ''
       } ${isDragging ? 'opacity-30 scale-95' : 'hover:shadow-md hover:-translate-y-0.5'}`}
     >
@@ -160,5 +200,24 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
         </div>
       </Link>
     </div>
+    {ctxMenu && (
+      <ContextMenu
+        position={ctxMenu}
+        onClose={() => setCtxMenu(null)}
+        items={[
+          ...statusOptions.map(([key, cfg]) => ({
+            label: `Move to ${cfg.label}`,
+            icon: cfg.emoji,
+            onClick: async () => { await updateProjectStatus(project.id, key); router.refresh(); },
+          })),
+          ...priorityOptions.map(p => ({
+            label: `Priority: ${p.charAt(0).toUpperCase() + p.slice(1)}`,
+            icon: priorityIcon[p] || '🟡',
+            onClick: async () => { await updateProjectPriority(project.id, p); router.refresh(); },
+          })),
+        ]}
+      />
+    )}
+    </>
   );
 }

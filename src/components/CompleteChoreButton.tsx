@@ -66,9 +66,16 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
     setShowDatePicker(true);
   }, [state]);
 
-  const handleTouchStart = useCallback(() => {
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const longPressTriggered = useRef(false);
+
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
+    longPressTriggered.current = false;
     longPressTimer.current = setTimeout(() => {
       if (state !== 'idle') return;
+      longPressTriggered.current = true;
       const now = new Date();
       setCustomDate(now.toISOString().split('T')[0]);
       setCustomTime(now.toTimeString().slice(0, 5));
@@ -76,11 +83,23 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
     }, 500);
   }, [state]);
 
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!touchStartPos.current) return;
+    const touch = e.touches[0];
+    if (Math.abs(touch.clientX - touchStartPos.current.x) > 10 || Math.abs(touch.clientY - touchStartPos.current.y) > 10) {
+      if (longPressTimer.current) {
+        clearTimeout(longPressTimer.current);
+        longPressTimer.current = null;
+      }
+    }
+  }, []);
+
   const handleTouchEnd = useCallback(() => {
     if (longPressTimer.current) {
       clearTimeout(longPressTimer.current);
       longPressTimer.current = null;
     }
+    touchStartPos.current = null;
   }, []);
 
   const handlePastComplete = useCallback(() => {
@@ -100,6 +119,7 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
         onClick={handleClick}
         onContextMenu={handleContextMenu}
         onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={handleTouchEnd}
         disabled={state !== 'idle'}

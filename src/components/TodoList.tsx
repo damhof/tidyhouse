@@ -1,8 +1,9 @@
 'use client';
 
 import { completeTodo, uncompleteTodo, deleteTodo, toggleProjectTask, updateTodo, setTodoTags } from '@/lib/actions';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ContextMenu } from './ContextMenu';
 
 type Tag = { id: number; name: string; color: string };
 type Todo = {
@@ -25,6 +26,32 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const router = useRouter();
   const [completing, setCompleting] = useState<number | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ todo: Todo; x: number; y: number } | null>(null);
+  const longPressRef = { timer: null as ReturnType<typeof setTimeout> | null, startPos: null as { x: number; y: number } | null, triggered: false };
+
+  const handleTodoTouchStart = useCallback((e: React.TouchEvent, todo: Todo) => {
+    if (todo.isProjectTask) return;
+    const touch = e.touches[0];
+    longPressRef.startPos = { x: touch.clientX, y: touch.clientY };
+    longPressRef.triggered = false;
+    longPressRef.timer = setTimeout(() => {
+      longPressRef.triggered = true;
+      setContextMenu({ todo, x: touch.clientX, y: touch.clientY });
+    }, 500);
+  }, []);
+
+  const handleTodoTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!longPressRef.startPos) return;
+    const touch = e.touches[0];
+    if (Math.abs(touch.clientX - longPressRef.startPos.x) > 10 || Math.abs(touch.clientY - longPressRef.startPos.y) > 10) {
+      if (longPressRef.timer) clearTimeout(longPressRef.timer);
+    }
+  }, []);
+
+  const handleTodoTouchEnd = useCallback(() => {
+    if (longPressRef.timer) clearTimeout(longPressRef.timer);
+    longPressRef.startPos = null;
+  }, []);
 
   const handleToggle = async (todo: Todo) => {
     setCompleting(todo.id);
@@ -76,8 +103,13 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
               return (
                 <div key={itemKey}>
                   <div
-                    onClick={() => !todo.isProjectTask && setExpandedId(isExpanded ? null : todo.id)}
-                    className={`flex items-start gap-3 rounded-2xl p-4 shadow-sm border group transition-all duration-200 cursor-pointer ${
+                    onClick={() => { if (longPressRef.triggered) return; !todo.isProjectTask && setExpandedId(isExpanded ? null : todo.id); }}
+                    onTouchStart={(e) => handleTodoTouchStart(e, todo)}
+                    onTouchMove={handleTodoTouchMove}
+                    onTouchEnd={handleTodoTouchEnd}
+                    onTouchCancel={handleTodoTouchEnd}
+                    onContextMenu={(e) => { e.preventDefault(); if (!todo.isProjectTask) setContextMenu({ todo, x: e.clientX, y: e.clientY }); }}
+                    className={`flex items-start gap-3 rounded-2xl p-4 shadow-sm border group transition-all duration-200 cursor-pointer card-interactive ${
                       todo.isProjectTask
                         ? 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50'
                         : 'bg-white dark:bg-warm-800 border-warm-200 dark:border-warm-700'
@@ -220,6 +252,25 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
             </div>
           )}
         </div>
+      )}
+      {contextMenu && (
+        <ContextMenu
+          position={{ x: contextMenu.x, y: contextMenu.y }}
+          onClose={() => setContextMenu(null)}
+          items={[
+            { label: 'Edit', icon: '✏️', onClick: () => setExpandedId(contextMenu.todo.id) },
+            {
+              label: contextMenu.todo.priority === 'high' ? 'Priority: Medium' : contextMenu.todo.priority === 'medium' ? 'Priority: Low' : 'Priority: High',
+              icon: contextMenu.todo.priority === 'high' ? '🟡' : contextMenu.todo.priority === 'medium' ? '🔵' : '🔴',
+              onClick: async () => {
+                const next = contextMenu.todo.priority === 'high' ? 'medium' : contextMenu.todo.priority === 'medium' ? 'low' : 'high';
+                await updateTodo(contextMenu.todo.id, { priority: next });
+                router.refresh();
+              },
+            },
+            { label: 'Delete', icon: '🗑', danger: true, onClick: async () => { await deleteTodo(contextMenu.todo.id); router.refresh(); } },
+          ]}
+        />
       )}
     </div>
   );

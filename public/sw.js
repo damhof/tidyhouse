@@ -1,5 +1,5 @@
-// Cache version — update automatically via build hash or manually
-const CACHE_VERSION = Date.now().toString(36);
+// Cache version — replaced at Docker build time via sed
+const CACHE_VERSION = '__BUILD_HASH__';
 const CACHE = `tidyhouse-${CACHE_VERSION}`;
 
 self.addEventListener('install', (e) => {
