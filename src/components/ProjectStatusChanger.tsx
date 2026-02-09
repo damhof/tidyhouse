@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 
 const statuses = [
   { value: 'backlog', label: '📥 Backlog' },
-  { value: 'active', label: '🔵 Active' },
+  { value: 'active', label: '⚡ Active' },
   { value: 'waiting', label: '⏳ Waiting' },
   { value: 'done', label: '✅ Done' },
 ];

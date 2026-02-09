@@ -107,7 +107,7 @@ function formatPinnedDays(pinned: string | null | undefined): string | null {
 }
 
 /* ─── Chore Row ─── */
-function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () => void; users?: User[] }) {
+function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand }: { chore: Chore; onComplete: () => void; users?: User[]; isExpanded: boolean; onToggleExpand: () => void }) {
   const [justCompleted, setJustCompleted] = useState(false);
   const ago = chore.lastCompleted ? formatTimeAgo(chore.lastCompleted) : 'Never done';
 
@@ -134,7 +134,6 @@ function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () =
     const dx = touch.clientX - touchStartRef.current.x;
     const dy = touch.clientY - touchStartRef.current.y;
 
-    // If vertical scroll dominates, abort swipe
     if (!isSwiping && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
       touchStartRef.current = null;
       return;
@@ -142,14 +141,12 @@ function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () =
 
     if (dx > 10) {
       setIsSwiping(true);
-      // Clamp between 0 and 120
       setSwipeX(Math.min(dx, 120));
     }
   }, [isSwiping, justCompleted]);
 
   const handleTouchEnd = useCallback(() => {
     if (swipeX > 80 && !justCompleted) {
-      // Complete on release
       setSwipeX(0);
       handleComplete();
     } else {
@@ -160,6 +157,7 @@ function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () =
   }, [swipeX, justCompleted, handleComplete]);
 
   const swipeProgress = Math.min(swipeX / 80, 1);
+  const lastUser = chore.lastUserId && users ? users.find(u => u.id === chore.lastUserId) : null;
 
   return (
     <div className="relative overflow-hidden rounded-xl" ref={rowRef}>
@@ -177,13 +175,15 @@ function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () =
       </div>
 
       <div
-        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800
+        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800 cursor-pointer
           ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}
+          ${isExpanded ? 'ring-2 ring-sage-300 dark:ring-sage-700' : ''}
           ${isSwiping ? '' : 'duration-300'}`}
         style={{ transform: `translateX(${swipeX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onClick={() => !isSwiping && onToggleExpand()}
       >
         <div
           className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors duration-700"
@@ -196,23 +196,63 @@ function ChoreRow({ chore, onComplete, users }: { chore: Chore; onComplete: () =
           <p className="text-xs text-warm-400">
             Every {chore.frequencyDays}d · {chore.effort} · {justCompleted ? 'Just now' : ago}
             {chore.pinnedDays && <span className="hidden lg:inline"> · 📌 {formatPinnedDays(chore.pinnedDays)}</span>}
-            {chore.lastUserId && users && <span className="hidden lg:inline"> · {users.find(u => u.id === chore.lastUserId)?.avatarEmoji || ''}</span>}
+            {lastUser && <span className="hidden lg:inline"> · {lastUser.avatarEmoji}</span>}
           </p>
         </div>
-        <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
+        <div onClick={e => e.stopPropagation()}>
+          <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
+        </div>
       </div>
+
+      {/* Inline detail card */}
+      <ExpandableSection isExpanded={isExpanded}>
+        <div className="bg-warm-50 dark:bg-warm-800/80 rounded-xl p-3 mt-1 border border-warm-200 dark:border-warm-700 space-y-2">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            <div>
+              <span className="text-warm-400">Last completed</span>
+              <p className="font-medium text-warm-700 dark:text-warm-200">
+                {chore.lastCompleted ? new Date(chore.lastCompleted).toLocaleDateString() : 'Never'}
+                {lastUser && <span> by {lastUser.avatarEmoji} {lastUser.name}</span>}
+              </p>
+            </div>
+            <div>
+              <span className="text-warm-400">Frequency</span>
+              <p className="font-medium text-warm-700 dark:text-warm-200">Every {chore.frequencyDays} days</p>
+            </div>
+            <div>
+              <span className="text-warm-400">Effort</span>
+              <p className="font-medium text-warm-700 dark:text-warm-200 capitalize">{chore.effort}</p>
+            </div>
+            {chore.pinnedDays && (
+              <div>
+                <span className="text-warm-400">Pinned days</span>
+                <p className="font-medium text-warm-700 dark:text-warm-200">📌 {formatPinnedDays(chore.pinnedDays)}</p>
+              </div>
+            )}
+          </div>
+          <div className="pt-1 flex items-center justify-between" onClick={e => e.stopPropagation()}>
+            <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
+            <button onClick={onToggleExpand} className="text-xs text-warm-400 hover:text-warm-600 transition-colors px-2 py-1">
+              Close ✕
+            </button>
+          </div>
+        </div>
+      </ExpandableSection>
     </div>
   );
 }
 
 /* ─── Chores List ─── */
 function ChoresList({ room, onComplete, users }: { room: Room; onComplete: (choreId: number) => void; users?: User[] }) {
+  const [expandedChoreId, setExpandedChoreId] = useState<number | null>(null);
   const sortedChores = [...room.chores].sort((a, b) => b.ratio - a.ratio);
   const allClean = sortedChores.every(c => c.level === 'green');
   return (
     <div className="space-y-0.5">
       {sortedChores.map((chore) => (
-        <ChoreRow key={chore.id} chore={chore} onComplete={() => onComplete(chore.id)} users={users} />
+        <ChoreRow key={chore.id} chore={chore} onComplete={() => onComplete(chore.id)} users={users}
+          isExpanded={expandedChoreId === chore.id}
+          onToggleExpand={() => setExpandedChoreId(expandedChoreId === chore.id ? null : chore.id)} />
       ))}
       {sortedChores.length === 0 && (
         <div className="text-center py-8 text-warm-400">

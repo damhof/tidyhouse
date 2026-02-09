@@ -31,12 +31,15 @@ export function CreateProjectButton() {
             <textarea name="description" placeholder="Description (optional)" rows={3}
               className="w-full text-sm bg-transparent outline-none placeholder-warm-400 resize-none" />
             <div className="flex gap-3">
-              <select name="priority" defaultValue="medium" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none">
-                <option value="low">🟢 Low</option>
-                <option value="medium">🟡 Medium</option>
-                <option value="high">🟠 High</option>
-                <option value="urgent">🔴 Urgent</option>
-              </select>
+              <div className="flex flex-col gap-0.5">
+                <label className="text-[10px] font-medium text-warm-400 dark:text-warm-500 uppercase tracking-wider">Priority</label>
+                <select name="priority" defaultValue="medium" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none">
+                  <option value="low">🟢 Low</option>
+                  <option value="medium">🟡 Medium</option>
+                  <option value="high">🟠 High</option>
+                  <option value="urgent">🔴 Urgent</option>
+                </select>
+              </div>
               <input name="targetDate" type="date" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none" />
             </div>
             <div className="flex gap-2 justify-end">

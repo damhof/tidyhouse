@@ -1,8 +1,7 @@
 'use client';
 
-import { completeTodo, uncompleteTodo, deleteTodo, toggleProjectTask, updateTodo } from '@/lib/actions';
-import { getCategoryConfig } from '@/lib/categories';
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { completeTodo, uncompleteTodo, deleteTodo, toggleProjectTask, updateTodo, setTodoTags } from '@/lib/actions';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 type Tag = { id: number; name: string; color: string };
@@ -71,7 +70,6 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
           {/* Mobile: Card layout */}
           <div className="lg:hidden space-y-2">
             {todos.map(todo => {
-              const cat = getCategoryConfig(todo.category);
               const isCompleting = completing === todo.id;
               const isExpanded = expandedId === todo.id && !todo.isProjectTask;
               const itemKey = todo.isProjectTask ? `pt-${todo.id}` : `todo-${todo.id}`;
@@ -102,11 +100,6 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                             📋 {todo.projectTitle}
                           </span>
                         )}
-                        {cat && (
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.color}`}>
-                            {cat.emoji} {cat.label}
-                          </span>
-                        )}
                       </div>
                       {todo.notes && <p className="text-xs text-warm-500 mt-1 line-clamp-2">{todo.notes}</p>}
                       <div className="flex items-center gap-2 mt-1.5 flex-wrap">
@@ -132,7 +125,6 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                       </button>
                     )}
                   </div>
-                  {/* Inline quick edit */}
                   {isExpanded && (
                     <InlineEditor todo={todo} users={users} projects={projects} allTags={allTags} onClose={() => setExpandedId(null)} />
                   )}
@@ -153,13 +145,12 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                     <th className="py-2 px-2 w-28">Due Date</th>
                     <th className="py-2 px-2 w-28">Assignee</th>
                     <th className="py-2 px-2 w-28">Project</th>
-                    <th className="py-2 px-2 w-28">Category</th>
+                    <th className="py-2 px-2 w-28">Tags</th>
                     <th className="py-2 px-2 w-8"></th>
                   </tr>
                 </thead>
                 <tbody>
                   {todos.map(todo => {
-                    const cat = getCategoryConfig(todo.category);
                     const isCompleting = completing === todo.id;
                     const isExpanded = expandedId === todo.id && !todo.isProjectTask;
                     const itemKey = todo.isProjectTask ? `pt-${todo.id}` : `todo-${todo.id}`;
@@ -181,9 +172,6 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                           <div className="flex items-center gap-2">
                             <span className={`${todo.completed ? 'line-through text-warm-400' : 'text-warm-800 dark:text-warm-100 font-medium'}`}>{todo.title}</span>
                             {todo.isProjectTask && <span className="text-xs px-1.5 py-0.5 rounded bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-300">📋</span>}
-                            {todo.tags && todo.tags.map(tag => (
-                              <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-full text-white" style={{ backgroundColor: tag.color }}>{tag.name}</span>
-                            ))}
                           </div>
                           {isExpanded && (
                             <div className="mt-2" onClick={e => e.stopPropagation()}>
@@ -210,7 +198,11 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                           {todo.projectId && projectMap[todo.projectId] ? projectMap[todo.projectId].title : '—'}
                         </td>
                         <td className="py-2.5 px-2">
-                          {cat && <span className={`text-xs px-2 py-0.5 rounded-full ${cat.color}`}>{cat.emoji} {cat.label}</span>}
+                          <div className="flex gap-1 flex-wrap">
+                            {todo.tags && todo.tags.map(tag => (
+                              <span key={tag.id} className="text-[10px] px-1.5 py-0.5 rounded-full text-white" style={{ backgroundColor: tag.color }}>{tag.name}</span>
+                            ))}
+                          </div>
                         </td>
                         <td className="py-2.5 px-2">
                           {!todo.isProjectTask && (
@@ -243,17 +235,27 @@ function InlineEditor({ todo, users, projects, allTags, onClose }: {
   const [priority, setPriority] = useState(todo.priority || '');
   const [dueDate, setDueDate] = useState(todo.dueDate || '');
   const [assigneeId, setAssigneeId] = useState(todo.assigneeId?.toString() || '');
-  const [category, setCategory] = useState(todo.category || '');
+  const [selectedTagIds, setSelectedTagIds] = useState<number[]>(todo.tags?.map(t => t.id) || []);
   const [saving, setSaving] = useState(false);
+
+  const toggleTag = (tagId: number) => {
+    setSelectedTagIds(prev => prev.includes(tagId) ? prev.filter(id => id !== tagId) : [...prev, tagId]);
+  };
 
   const handleSave = async () => {
     setSaving(true);
     await updateTodo(todo.id, {
       title, notes: notes || null, priority: priority || null,
       dueDate: dueDate || null, assigneeId: assigneeId ? parseInt(assigneeId) : null,
-      category: category || null,
     });
+    await setTodoTags(todo.id, selectedTagIds);
     setSaving(false);
+    router.refresh();
+    onClose();
+  };
+
+  const handleDelete = async () => {
+    await deleteTodo(todo.id);
     router.refresh();
     onClose();
   };
@@ -285,11 +287,30 @@ function InlineEditor({ todo, users, projects, allTags, onClose }: {
           {users.map(u => <option key={u.id} value={u.id}>{u.avatarEmoji} {u.name}</option>)}
         </select>
       </div>
-      <div className="flex gap-2 justify-end">
-        <button onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">Cancel</button>
-        <button onClick={handleSave} disabled={saving} className="text-xs px-3 py-1.5 rounded-lg bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors disabled:opacity-50">
-          {saving ? 'Saving...' : 'Save'}
+      {allTags && allTags.length > 0 && (
+        <div className="flex flex-wrap gap-1.5">
+          <span className="text-xs text-warm-400 self-center mr-1">Tags:</span>
+          {allTags.map(tag => (
+            <button key={tag.id} type="button" onClick={() => toggleTag(tag.id)}
+              className={`text-xs px-2.5 py-1 rounded-full font-medium transition-all ${
+                selectedTagIds.includes(tag.id) ? 'text-white ring-2 ring-offset-1 ring-warm-400' : 'text-white/70 opacity-60 hover:opacity-100'
+              }`}
+              style={{ backgroundColor: tag.color }}>
+              {tag.name}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2 justify-between">
+        <button onClick={handleDelete} className="text-xs px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+          🗑 Delete
         </button>
+        <div className="flex gap-2">
+          <button onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="text-xs px-3 py-1.5 rounded-lg bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors disabled:opacity-50">
+            {saving ? 'Saving...' : 'Save'}
+          </button>
+        </div>
       </div>
     </div>
   );

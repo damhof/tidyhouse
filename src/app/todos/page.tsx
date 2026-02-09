@@ -104,7 +104,7 @@ export default async function TodosPage() {
         <h1 className="text-2xl font-bold text-warm-800 dark:text-warm-100">To-Do&apos;s</h1>
       </div>
 
-      <AddTodoForm users={allUsers} projects={allProjects} />
+      <AddTodoForm users={allUsers} projects={allProjects} tags={allTags} />
 
       <TodoSortFilter
         activeTodos={activeTodos}

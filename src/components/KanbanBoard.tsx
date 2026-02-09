@@ -14,7 +14,7 @@ type Tag = { id: number; projectId: number; tag: string };
 
 const statusConfig = {
   backlog: { label: 'Backlog', emoji: '📥', headerColor: 'bg-warm-200/80 dark:bg-warm-600/80 text-warm-700 dark:text-warm-300' },
-  active: { label: 'Active', emoji: '🔵', headerColor: 'bg-blue-100/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
+  active: { label: 'Active', emoji: '⚡', headerColor: 'bg-blue-100/80 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300' },
   waiting: { label: 'Waiting', emoji: '⏳', headerColor: 'bg-amber-100/80 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300' },
   done: { label: 'Done', emoji: '✅', headerColor: 'bg-green-100/80 dark:bg-green-900/30 text-green-700 dark:text-green-300' },
 };

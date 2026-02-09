@@ -52,7 +52,7 @@ export async function createTodo(formData: FormData) {
   const assigneeId = formData.get('assigneeId') ? parseInt(formData.get('assigneeId') as string) : null;
   const projectId = formData.get('projectId') ? parseInt(formData.get('projectId') as string) : null;
 
-  db.insert(todos).values({
+  const result = db.insert(todos).values({
     title,
     notes,
     category: category || null,
@@ -64,6 +64,7 @@ export async function createTodo(formData: FormData) {
     createdBy: userId,
   }).run();
   revalidatePath('/todos');
+  return Number(result.lastInsertRowid);
 }
 
 export async function completeTodo(todoId: number) {
@@ -143,6 +144,25 @@ export async function updateProjectStatus(projectId: number, status: string) {
     userId,
     action: 'status_changed',
     details: `Changed status to ${status}`,
+    createdAt: new Date().toISOString(),
+  }).run();
+
+  revalidatePath('/projects');
+  revalidatePath(`/projects/${projectId}`);
+}
+
+export async function updateProjectPriority(projectId: number, priority: string) {
+  const userId = await requireUserId();
+  db.update(projects)
+    .set({ priority: priority as any })
+    .where(eq(projects.id, projectId))
+    .run();
+
+  db.insert(projectActivity).values({
+    projectId,
+    userId,
+    action: 'priority_changed',
+    details: `Changed priority to ${priority}`,
     createdAt: new Date().toISOString(),
   }).run();
 

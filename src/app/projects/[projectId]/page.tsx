@@ -3,6 +3,7 @@ import { projects, projectTasks, projectNotes, projectActivity, projectTags, use
 import { eq, desc } from 'drizzle-orm';
 import Link from 'next/link';
 import { ProjectStatusChanger } from '@/components/ProjectStatusChanger';
+import { ProjectPriorityChanger } from '@/components/ProjectPriorityChanger';
 import { ProjectTaskList } from '@/components/ProjectTaskList';
 import { AddNoteForm } from '@/components/AddNoteForm';
 import { AddTaskForm } from '@/components/AddTaskForm';
@@ -49,7 +50,7 @@ export default async function ProjectDetailPage({ params }: { params: Promise<{ 
             <h1 className="text-2xl font-bold text-warm-800 dark:text-warm-100 mb-1">{project.title}</h1>
             {project.description && <p className="text-warm-500 dark:text-warm-400 text-sm">{project.description}</p>}
             <div className="flex items-center gap-2 mt-3 flex-wrap">
-              <span className="text-sm">{priorityLabel[project.priority as keyof typeof priorityLabel]}</span>
+              <ProjectPriorityChanger projectId={project.id} currentPriority={project.priority} />
               {project.targetDate && <span className="text-xs bg-warm-100 dark:bg-warm-700 px-2 py-1 rounded-full">📅 {project.targetDate}</span>}
               {tags.map(t => (
                 <span key={t.id} className="text-xs bg-sage-100 dark:bg-sage-900/30 text-sage-700 dark:text-sage-300 px-2 py-0.5 rounded-full">{t.tag}</span>
