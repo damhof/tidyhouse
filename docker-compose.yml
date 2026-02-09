@@ -8,6 +8,7 @@ services:
     environment:
       - DATABASE_URL=/data/tidyhouse.db
       - NODE_ENV=production
+      - TIDYHOUSE_PASSWORD=${TIDYHOUSE_PASSWORD:-}
     restart: unless-stopped
 
 volumes:

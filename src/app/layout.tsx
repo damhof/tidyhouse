@@ -5,7 +5,7 @@ import { BottomNav, SideRail } from '@/components/Navigation';
 import { Header } from '@/components/Header';
 import { UserGate } from '@/components/UserGate';
 import { ServiceWorker } from '@/components/ServiceWorker';
-import { getCurrentUserId } from '@/lib/auth';
+import { getCurrentUserId, isAuthenticated, isAuthEnabled } from '@/lib/auth';
 import { db } from '@/db';
 import { users } from '@/db/schema';
 import { eq } from 'drizzle-orm';
@@ -23,6 +23,19 @@ export const viewport: Viewport = {
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Check household auth first (password-based)
+  const authed = await isAuthenticated();
+  if (isAuthEnabled() && !authed) {
+    // Middleware handles redirect, but for direct server renders:
+    return (
+      <html lang="en" suppressHydrationWarning>
+        <body className="bg-warm-50 dark:bg-warm-950 text-warm-900 dark:text-warm-100 antialiased">
+          {children}
+        </body>
+      </html>
+    );
+  }
+
   const userId = await getCurrentUserId();
   let user = null;
   if (userId) {
