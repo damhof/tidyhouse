@@ -1,6 +1,8 @@
 services:
   tidyhouse:
-    build: .
+    image: ghcr.io/damhof/tidyhouse:latest
+    # To build locally instead: comment out 'image' and uncomment 'build'
+    # build: .
     ports:
       - "3000:3000"
     volumes:
