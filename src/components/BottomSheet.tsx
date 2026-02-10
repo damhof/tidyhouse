@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useId } from 'react';
 import { createPortal } from 'react-dom';
 
 type BottomSheetProps = {
@@ -15,24 +15,49 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
   const [visible, setVisible] = useState(false);
   const [translateY, setTranslateY] = useState(100);
   const sheetRef = useRef<HTMLDivElement>(null);
+  const previousActiveElement = useRef<HTMLElement | null>(null);
   const dragStartY = useRef<number | null>(null);
   const dragCurrentY = useRef<number>(0);
+  const titleId = useId();
 
   useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
     if (isOpen) {
+      // Store previously focused element
+      previousActiveElement.current = document.activeElement as HTMLElement;
       setVisible(true);
       // Trigger animation on next frame
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => setTranslateY(0));
+        requestAnimationFrame(() => {
+          setTranslateY(0);
+          // Focus the sheet for accessibility
+          sheetRef.current?.focus();
+        });
       });
     } else {
       setTranslateY(100);
-      const timer = setTimeout(() => setVisible(false), 300);
+      const timer = setTimeout(() => {
+        setVisible(false);
+        // Restore focus to previously focused element
+        previousActiveElement.current?.focus();
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen]);
+
+  // Handle Escape key to close
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
 
   const handleDragStart = useCallback((e: React.TouchEvent) => {
     dragStartY.current = e.touches[0].clientY;
@@ -83,13 +108,18 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm transition-opacity duration-300"
         style={{ opacity: translateY === 0 ? 1 : 0 }} />
       <div
+        ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        tabIndex={-1}
         onClick={e => e.stopPropagation()}
-        className="relative bg-white dark:bg-warm-800 rounded-2xl shadow-2xl border border-warm-200 dark:border-warm-700 w-full max-w-md mx-4 overflow-hidden transition-all duration-300"
+        className="relative bg-white dark:bg-warm-800 rounded-2xl shadow-2xl border border-warm-200 dark:border-warm-700 w-full max-w-md mx-4 overflow-hidden transition-all duration-300 outline-none"
         style={{ transform: `scale(${translateY === 0 ? 1 : 0.95})`, opacity: translateY === 0 ? 1 : 0 }}
       >
         {title && (
           <div className="px-6 pt-5 pb-3 border-b border-warm-100 dark:border-warm-700">
-            <h3 className="text-lg font-semibold text-warm-800 dark:text-warm-100">{title}</h3>
+            <h3 id={titleId} className="text-lg font-semibold text-warm-800 dark:text-warm-100">{title}</h3>
           </div>
         )}
         <div className="p-2 max-h-[70vh] overflow-y-auto">{children}</div>
@@ -102,20 +132,24 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
         style={{ opacity: translateY === 0 ? 1 : 0 }} />
       <div
         ref={sheetRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        tabIndex={-1}
         onClick={e => e.stopPropagation()}
         onTouchStart={handleDragStart}
         onTouchMove={handleDragMove}
         onTouchEnd={handleDragEnd}
-        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-warm-800 rounded-t-2xl shadow-2xl transition-transform duration-300 ease-out max-h-[85vh] overflow-hidden"
+        className="absolute bottom-0 left-0 right-0 bg-white dark:bg-warm-800 rounded-t-2xl shadow-2xl transition-transform duration-300 ease-out max-h-[85vh] overflow-hidden outline-none"
         style={{ transform: `translateY(${typeof translateY === 'number' && translateY <= 100 ? translateY : 100}px)` }}
       >
         {/* Drag handle */}
         <div className="flex justify-center pt-3 pb-1">
-          <div className="w-10 h-1 bg-warm-300 dark:bg-warm-600 rounded-full" />
+          <div className="w-10 h-1 bg-warm-300 dark:bg-warm-600 rounded-full" aria-hidden="true" />
         </div>
         {title && (
           <div className="px-5 pb-3 pt-1">
-            <h3 className="text-lg font-semibold text-warm-800 dark:text-warm-100">{title}</h3>
+            <h3 id={titleId} className="text-lg font-semibold text-warm-800 dark:text-warm-100">{title}</h3>
           </div>
         )}
         <div className="px-2 pb-safe max-h-[70vh] overflow-y-auto" style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 16px)' }}>

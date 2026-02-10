@@ -51,10 +51,17 @@ export function ToastContainer() {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="fixed bottom-24 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none md:bottom-6">
+    <div
+      role="region"
+      aria-label="Notifications"
+      aria-live="polite"
+      aria-atomic="false"
+      className="fixed bottom-24 left-0 right-0 z-50 flex flex-col items-center gap-2 px-4 pointer-events-none md:bottom-6"
+    >
       {toasts.map((toast) => (
         <div
           key={toast.id}
+          role="status"
           className={`pointer-events-auto flex items-center gap-3 bg-warm-700 dark:bg-warm-100 text-white dark:text-warm-900 px-4 py-3 rounded-xl shadow-lg max-w-sm w-full transition-all duration-300 ${
             toast.exiting ? 'opacity-0 translate-y-2' : 'opacity-100 translate-y-0'
           }`}
@@ -65,6 +72,7 @@ export function ToastContainer() {
             <button
               onClick={() => { toast.onUndo?.(); dismiss(toast.id); }}
               className="text-sage-400 dark:text-sage-600 font-semibold text-sm hover:text-sage-300 dark:hover:text-sage-700 transition-colors"
+              aria-label={`Undo: ${toast.message}`}
             >
               Undo
             </button>
@@ -72,6 +80,7 @@ export function ToastContainer() {
           <button
             onClick={() => dismiss(toast.id)}
             className="text-warm-400 dark:text-warm-500 hover:text-warm-200 dark:hover:text-warm-700 text-lg leading-none"
+            aria-label="Dismiss notification"
           >
             ×
           </button>

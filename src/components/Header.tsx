@@ -83,15 +83,15 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
         {/* Settings gear */}
         <Link href="/settings"
           className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 transition-all duration-200"
-          title="Settings">
-          ⚙️
+          aria-label="Settings">
+          <span aria-hidden="true">⚙️</span>
         </Link>
 
         {/* Theme toggle */}
         <button onClick={() => setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark')}
           className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 transition-all duration-200"
-          title={`Theme: ${themeLabel}`}>
-          {themeIcon}
+          aria-label={`Change theme, current: ${themeLabel}`}>
+          <span aria-hidden="true">{themeIcon}</span>
         </button>
 
         {/* User switcher */}

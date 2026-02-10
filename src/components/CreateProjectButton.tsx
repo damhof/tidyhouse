@@ -6,12 +6,18 @@ import { useRouter } from 'next/navigation';
 
 export function CreateProjectButton() {
   const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
-    const id = await createProject(formData);
-    setOpen(false);
-    router.push(`/projects/${id}`);
+    setSaving(true);
+    try {
+      const id = await createProject(formData);
+      setOpen(false);
+      router.push(`/projects/${id}`);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -22,10 +28,13 @@ export function CreateProjectButton() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => setOpen(false)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4" onClick={() => !saving && setOpen(false)}>
           <form action={handleSubmit} onClick={e => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="new-project-title"
             className="bg-white dark:bg-warm-900 rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl animate-fade-in border border-warm-200 dark:border-warm-800">
-            <h2 className="text-xl font-bold text-warm-900 dark:text-warm-100">New Project</h2>
+            <h2 id="new-project-title" className="text-xl font-bold text-warm-900 dark:text-warm-100">New Project</h2>
             <input name="title" placeholder="Project title" required autoFocus
               className="w-full text-lg font-medium bg-transparent outline-none border-b border-warm-200 dark:border-warm-700 pb-2 placeholder-warm-400 focus:border-sage-400 transition-colors" />
             <textarea name="description" placeholder="Description (optional)" rows={3}
@@ -46,13 +55,13 @@ export function CreateProjectButton() {
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
-              <button type="button" onClick={() => setOpen(false)}
-                className="px-5 py-2.5 text-sm rounded-xl text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors font-medium min-h-[44px]">
+              <button type="button" onClick={() => setOpen(false)} disabled={saving}
+                className="px-5 py-2.5 text-sm rounded-xl text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors font-medium min-h-[44px] disabled:opacity-50">
                 Cancel
               </button>
-              <button type="submit"
-                className="px-5 py-2.5 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium transition-colors min-h-[44px]">
-                Create Project
+              <button type="submit" disabled={saving}
+                className="px-5 py-2.5 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium transition-colors min-h-[44px] disabled:opacity-50">
+                {saving ? 'Creating...' : 'Create Project'}
               </button>
             </div>
           </form>
