@@ -142,14 +142,10 @@ function StatCard({ label, value, subValue, icon, trend, trendPercent }: {
   );
 }
 
-function UserCard({ user, rank, color }: { 
+function UserCard({ user, color }: { 
   user: SummaryData['userStats'][0]; 
-  rank: number;
   color: string;
 }) {
-  const medals = ['🥇', '🥈', '🥉'];
-  const medal = rank < 3 ? medals[rank] : null;
-  
   return (
     <div className="bg-white dark:bg-warm-800 rounded-xl p-4 shadow-sm border border-warm-200 dark:border-warm-700">
       <div className="flex items-center gap-3 mb-3">
@@ -160,10 +156,7 @@ function UserCard({ user, rank, color }: {
           {user.userEmoji}
         </div>
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="font-medium text-warm-800 dark:text-warm-100">{user.userName}</span>
-            {medal && <span className="text-lg">{medal}</span>}
-          </div>
+          <span className="font-medium text-warm-800 dark:text-warm-100">{user.userName}</span>
           <p className="text-xs text-warm-400">{user.count} chores · {user.effortScore} pts</p>
         </div>
       </div>
@@ -201,7 +194,8 @@ export function SummaryClient({
   const [period, setPeriod] = useState<TimePeriod>(initialData.period);
   const data = allData[period];
   
-  const sortedUsers = [...data.userStats].sort((a, b) => b.effortScore - a.effortScore);
+  // Sort alphabetically by name (non-competitive)
+  const sortedUsers = [...data.userStats].sort((a, b) => a.userName.localeCompare(b.userName));
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
@@ -379,7 +373,7 @@ export function SummaryClient({
         <h2 className="text-lg font-semibold mb-4 text-warm-800 dark:text-warm-100">👥 Household Members</h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {sortedUsers.map((user, i) => (
-            <UserCard key={user.userId} user={user} rank={i} color={USER_COLORS[i % USER_COLORS.length]} />
+            <UserCard key={user.userId} user={user} color={USER_COLORS[i % USER_COLORS.length]} />
           ))}
         </div>
       </div>
