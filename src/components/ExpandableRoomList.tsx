@@ -174,6 +174,7 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
   const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggered = useRef(false);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   // Assigned user
   const assignedUser = chore.assignedTo && users ? users.find(u => u.id === chore.assignedTo) : null;
@@ -184,16 +185,20 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
   }, [onComplete]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    // Don't start long-press if touching the complete button
+    const target = e.target as HTMLElement;
+    if (target.closest('button')) return;
+
     const touch = e.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
     setIsSwiping(false);
     longPressTriggered.current = false;
 
-    // Start long-press timer
+    // Start long-press timer (500ms)
     longPressTimer.current = setTimeout(() => {
       longPressTriggered.current = true;
-      // Prevent any default behavior and trigger haptic feedback if available
-      if (navigator.vibrate) navigator.vibrate(10);
+      // Trigger haptic feedback if available
+      if (navigator.vibrate) navigator.vibrate(15);
       onLongPress();
     }, 500);
   }, [onLongPress]);
@@ -204,13 +209,13 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
     const dx = touch.clientX - touchStartRef.current.x;
     const dy = touch.clientY - touchStartRef.current.y;
 
-    // Cancel long-press on any movement (reduced threshold for better scroll detection)
-    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+    // Cancel long-press on movement > 10px (scroll detection)
+    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
       if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
     }
 
     // If scrolling vertically, cancel everything
-    if (!isSwiping && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 5) {
+    if (!isSwiping && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
       touchStartRef.current = null;
       return;
     }
@@ -221,8 +226,15 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
     }
   }, [isSwiping, justCompleted]);
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
     if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
+
+    // If long-press was triggered, prevent any further action
+    if (longPressTriggered.current) {
+      e.preventDefault();
+      touchStartRef.current = null;
+      return;
+    }
 
     if (swipeX > 80 && !justCompleted) {
       setSwipeX(0);
@@ -266,7 +278,8 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
       </div>
 
       <div
-        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800 cursor-pointer
+        ref={rowRef}
+        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800 cursor-pointer select-none touch-manipulation
           ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}
           ${isExpanded ? 'ring-2 ring-sage-300 dark:ring-sage-700' : ''}
           ${isSwiping ? '' : 'duration-300'}`}
@@ -274,8 +287,18 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onTouchCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); setSwipeX(0); setIsSwiping(false); touchStartRef.current = null; }}
-        onClick={() => { if (!isSwiping && !longPressTriggered.current) onToggleExpand(); }}
+        onTouchCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); setSwipeX(0); setIsSwiping(false); touchStartRef.current = null; longPressTriggered.current = false; }}
+        onClick={(e) => { 
+          // Prevent click if long-press was triggered or if swiping
+          if (longPressTriggered.current || isSwiping) {
+            e.preventDefault();
+            e.stopPropagation();
+            // Reset for next interaction
+            setTimeout(() => { longPressTriggered.current = false; }, 100);
+            return;
+          }
+          onToggleExpand();
+        }}
       >
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors duration-700"
           style={{ backgroundColor: justCompleted ? '#4CAF50' : stalenessColor(chore.level) }} />

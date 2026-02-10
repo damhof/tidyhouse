@@ -290,17 +290,19 @@ export function CalendarClient({ completions, pinnedChores, dueTodos, users }: {
         </div>
       </div>
 
-      {/* Mobile/Tablet: day detail when selected (hidden on desktop since desktop has side panel) */}
-      {selectedDate && selectedItems && (
-        <div className="block lg:hidden mt-4">
-          <DayDetail
-            date={selectedDate}
-            items={selectedItems}
-            userMap={userMap}
-            onClose={() => setSelectedDate(null)}
-          />
-        </div>
-      )}
+      {/* Mobile/Tablet only: day detail panel below calendar (desktop uses side panel) */}
+      <div className="lg:hidden">
+        {selectedDate && selectedItems && (
+          <div className="mt-4">
+            <DayDetail
+              date={selectedDate}
+              items={selectedItems}
+              userMap={userMap}
+              onClose={() => setSelectedDate(null)}
+            />
+          </div>
+        )}
+      </div>
     </div>
   );
 }
