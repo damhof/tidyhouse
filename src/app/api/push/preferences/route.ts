@@ -22,12 +22,53 @@ export async function GET() {
   });
 }
 
+// Validate time format (HH:MM)
+function isValidTimeFormat(time: string): boolean {
+  if (typeof time !== 'string') return false;
+  const match = time.match(/^([01]\d|2[0-3]):([0-5]\d)$/);
+  return !!match;
+}
+
+// Validate day of week
+const VALID_DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+function isValidDay(day: string): boolean {
+  return typeof day === 'string' && VALID_DAYS.includes(day.toLowerCase());
+}
+
 export async function PUT(req: NextRequest) {
   const userId = await getCurrentUserId();
   if (!userId) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
 
-  const body = await req.json();
+  let body;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 });
+  }
+  
   const { morningDigest, morningDigestTime, urgencyAlerts, weeklySummary, weeklySummaryDay, weeklySummaryTime } = body;
+
+  // Validate time formats if provided
+  if (morningDigestTime !== undefined && !isValidTimeFormat(morningDigestTime)) {
+    return NextResponse.json({ error: 'Invalid morning digest time format (use HH:MM)' }, { status: 400 });
+  }
+  if (weeklySummaryTime !== undefined && !isValidTimeFormat(weeklySummaryTime)) {
+    return NextResponse.json({ error: 'Invalid weekly summary time format (use HH:MM)' }, { status: 400 });
+  }
+  if (weeklySummaryDay !== undefined && !isValidDay(weeklySummaryDay)) {
+    return NextResponse.json({ error: 'Invalid weekly summary day' }, { status: 400 });
+  }
+  
+  // Validate boolean types
+  if (morningDigest !== undefined && typeof morningDigest !== 'boolean') {
+    return NextResponse.json({ error: 'morningDigest must be a boolean' }, { status: 400 });
+  }
+  if (urgencyAlerts !== undefined && typeof urgencyAlerts !== 'boolean') {
+    return NextResponse.json({ error: 'urgencyAlerts must be a boolean' }, { status: 400 });
+  }
+  if (weeklySummary !== undefined && typeof weeklySummary !== 'boolean') {
+    return NextResponse.json({ error: 'weeklySummary must be a boolean' }, { status: 400 });
+  }
 
   const existing = db.select().from(notificationPreferences).where(eq(notificationPreferences.userId, userId)).get();
 

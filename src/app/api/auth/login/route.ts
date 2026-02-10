@@ -6,7 +6,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   }
 
-  const { password } = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
+  }
+  
+  const { password } = body;
+  if (typeof password !== 'string') {
+    return NextResponse.json({ error: 'Password required' }, { status: 400 });
+  }
+  
   const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
     || request.headers.get('x-real-ip') 
     || 'unknown';

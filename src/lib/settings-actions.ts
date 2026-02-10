@@ -14,9 +14,20 @@ export async function updateUserEmoji(userId: number, emoji: string) {
 
 // --- Room Actions ---
 export async function createRoom(name: string, icon: string) {
+  const trimmedName = name?.trim();
+  if (!trimmedName) {
+    throw new Error('Room name is required');
+  }
+  if (trimmedName.length > 100) {
+    throw new Error('Room name is too long');
+  }
+  if (!icon || icon.length > 10) {
+    throw new Error('Invalid room icon');
+  }
+  
   const maxOrder = db.select({ max: sql<number>`COALESCE(MAX(sort_order), 0)` }).from(rooms).get();
   db.insert(rooms).values({
-    name,
+    name: trimmedName,
     icon,
     sortOrder: (maxOrder?.max ?? 0) + 1,
   }).run();
@@ -26,13 +37,41 @@ export async function createRoom(name: string, icon: string) {
 }
 
 export async function updateRoom(roomId: number, name: string, icon: string) {
-  db.update(rooms).set({ name, icon }).where(eq(rooms.id, roomId)).run();
+  const trimmedName = name?.trim();
+  if (!trimmedName) {
+    throw new Error('Room name is required');
+  }
+  if (trimmedName.length > 100) {
+    throw new Error('Room name is too long');
+  }
+  if (!icon || icon.length > 10) {
+    throw new Error('Invalid room icon');
+  }
+  
+  // Verify room exists
+  const room = db.select().from(rooms).where(eq(rooms.id, roomId)).get();
+  if (!room) {
+    throw new Error('Room not found');
+  }
+  
+  db.update(rooms).set({ name: trimmedName, icon }).where(eq(rooms.id, roomId)).run();
   revalidatePath('/settings');
   revalidatePath('/chores');
   revalidatePath('/');
 }
 
 export async function deleteRoom(roomId: number) {
+  // Validate roomId
+  if (!Number.isInteger(roomId) || roomId <= 0) {
+    throw new Error('Invalid room ID');
+  }
+  
+  // Verify room exists
+  const room = db.select().from(rooms).where(eq(rooms.id, roomId)).get();
+  if (!room) {
+    throw new Error('Room not found');
+  }
+  
   // Delete chore completions for chores in this room
   const roomChores = db.select({ id: chores.id }).from(chores).where(eq(chores.roomId, roomId)).all();
   for (const c of roomChores) {
@@ -56,9 +95,41 @@ export async function reorderRooms(roomIds: number[]) {
 
 // --- Chore Actions ---
 export async function createChore(roomId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null, assignedTo?: number | null) {
+  // Validate inputs
+  const trimmedName = name?.trim();
+  if (!trimmedName) {
+    throw new Error('Chore name is required');
+  }
+  if (trimmedName.length > 200) {
+    throw new Error('Chore name is too long');
+  }
+  if (!Number.isInteger(frequencyDays) || frequencyDays < 1 || frequencyDays > 365) {
+    throw new Error('Frequency must be between 1 and 365 days');
+  }
+  if (!['quick', 'medium', 'intensive'].includes(effort)) {
+    throw new Error('Invalid effort level');
+  }
+  
+  // Validate roomId exists
+  const room = db.select().from(rooms).where(eq(rooms.id, roomId)).get();
+  if (!room) {
+    throw new Error('Room not found');
+  }
+  
+  // Validate pinnedDays format (comma-separated 0-6)
+  if (pinnedDays) {
+    const days = pinnedDays.split(',');
+    for (const d of days) {
+      const num = parseInt(d, 10);
+      if (isNaN(num) || num < 0 || num > 6) {
+        throw new Error('Invalid pinned days format');
+      }
+    }
+  }
+  
   db.insert(chores).values({
     roomId,
-    name,
+    name: trimmedName,
     frequencyDays,
     effort,
     pinnedDays: pinnedDays || null,
@@ -71,7 +142,39 @@ export async function createChore(roomId: number, name: string, frequencyDays: n
 }
 
 export async function updateChore(choreId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null, assignedTo?: number | null) {
-  db.update(chores).set({ name, frequencyDays, effort, pinnedDays: pinnedDays || null, assignedTo: assignedTo ?? null }).where(eq(chores.id, choreId)).run();
+  // Validate inputs
+  const trimmedName = name?.trim();
+  if (!trimmedName) {
+    throw new Error('Chore name is required');
+  }
+  if (trimmedName.length > 200) {
+    throw new Error('Chore name is too long');
+  }
+  if (!Number.isInteger(frequencyDays) || frequencyDays < 1 || frequencyDays > 365) {
+    throw new Error('Frequency must be between 1 and 365 days');
+  }
+  if (!['quick', 'medium', 'intensive'].includes(effort)) {
+    throw new Error('Invalid effort level');
+  }
+  
+  // Verify chore exists
+  const chore = db.select().from(chores).where(eq(chores.id, choreId)).get();
+  if (!chore) {
+    throw new Error('Chore not found');
+  }
+  
+  // Validate pinnedDays format
+  if (pinnedDays) {
+    const days = pinnedDays.split(',');
+    for (const d of days) {
+      const num = parseInt(d, 10);
+      if (isNaN(num) || num < 0 || num > 6) {
+        throw new Error('Invalid pinned days format');
+      }
+    }
+  }
+  
+  db.update(chores).set({ name: trimmedName, frequencyDays, effort, pinnedDays: pinnedDays || null, assignedTo: assignedTo ?? null }).where(eq(chores.id, choreId)).run();
   revalidatePath('/settings');
   revalidatePath('/chores');
   revalidatePath('/');

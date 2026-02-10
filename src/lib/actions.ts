@@ -9,6 +9,30 @@ import { eq, and, sql } from 'drizzle-orm';
 // --- Chore Actions ---
 export async function completeChore(choreId: number, completedAt?: string): Promise<number> {
   const userId = await requireUserId();
+  
+  // Validate choreId is a positive integer
+  if (!Number.isInteger(choreId) || choreId <= 0) {
+    throw new Error('Invalid chore ID');
+  }
+  
+  // Verify the chore exists
+  const { chores } = await import('@/db/schema');
+  const chore = db.select().from(chores).where(eq(chores.id, choreId)).get();
+  if (!chore) {
+    throw new Error('Chore not found');
+  }
+  
+  // Validate completedAt if provided (should not be in the future)
+  if (completedAt) {
+    const date = new Date(completedAt);
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid completion date');
+    }
+    if (date > new Date()) {
+      throw new Error('Completion date cannot be in the future');
+    }
+  }
+  
   const result = db.insert(choreCompletions).values({
     choreId,
     userId,
@@ -22,6 +46,22 @@ export async function completeChore(choreId: number, completedAt?: string): Prom
 }
 
 export async function undoChoreCompletion(completionId: number) {
+  const userId = await requireUserId();
+  
+  // Validate completionId
+  if (!Number.isInteger(completionId) || completionId <= 0) {
+    throw new Error('Invalid completion ID');
+  }
+  
+  // Verify the completion exists and belongs to this user
+  const completion = db.select().from(choreCompletions).where(eq(choreCompletions.id, completionId)).get();
+  if (!completion) {
+    throw new Error('Completion not found');
+  }
+  if (completion.userId !== userId) {
+    throw new Error('Cannot undo another user\'s completion');
+  }
+  
   db.delete(choreCompletions).where(eq(choreCompletions.id, completionId)).run();
   revalidatePath('/');
   revalidatePath('/chores');
@@ -44,18 +84,47 @@ export async function fetchSessionPlan(timeBudget: number) {
 // --- Todo Actions ---
 export async function createTodo(formData: FormData) {
   const userId = await requireUserId();
-  const title = formData.get('title') as string;
+  const title = (formData.get('title') as string || '').trim();
   const notes = formData.get('notes') as string || null;
   const category = formData.get('category') as string || null;
   const dueDate = formData.get('dueDate') as string || null;
   const priority = formData.get('priority') as string || null;
-  const assigneeId = formData.get('assigneeId') ? parseInt(formData.get('assigneeId') as string) : null;
-  const projectId = formData.get('projectId') ? parseInt(formData.get('projectId') as string) : null;
+  const assigneeIdStr = formData.get('assigneeId') as string;
+  const projectIdStr = formData.get('projectId') as string;
+  
+  // Validate required fields
+  if (!title) {
+    throw new Error('Title is required');
+  }
+  if (title.length > 500) {
+    throw new Error('Title is too long (max 500 characters)');
+  }
+  
+  // Parse and validate optional IDs
+  const assigneeId = assigneeIdStr ? parseInt(assigneeIdStr, 10) : null;
+  const projectId = projectIdStr ? parseInt(projectIdStr, 10) : null;
+  
+  if (assigneeId !== null && (isNaN(assigneeId) || assigneeId <= 0)) {
+    throw new Error('Invalid assignee');
+  }
+  if (projectId !== null && (isNaN(projectId) || projectId <= 0)) {
+    throw new Error('Invalid project');
+  }
+  
+  // Validate priority if provided
+  if (priority && !['low', 'medium', 'high'].includes(priority)) {
+    throw new Error('Invalid priority');
+  }
+  
+  // Validate dueDate format if provided
+  if (dueDate && isNaN(new Date(dueDate).getTime())) {
+    throw new Error('Invalid due date');
+  }
 
   const result = db.insert(todos).values({
     title,
-    notes,
-    category: category || null,
+    notes: notes?.trim() || null,
+    category: category?.trim() || null,
     dueDate: dueDate || null,
     priority: priority || null,
     assigneeId,
@@ -88,12 +157,55 @@ export async function updateTodo(todoId: number, data: {
   title?: string; notes?: string | null; priority?: string | null;
   dueDate?: string | null; assigneeId?: number | null; category?: string | null;
 }) {
+  await requireUserId();
+  
+  // Validate todoId
+  if (!Number.isInteger(todoId) || todoId <= 0) {
+    throw new Error('Invalid todo ID');
+  }
+  
+  // Verify todo exists
+  const todo = db.select().from(todos).where(eq(todos.id, todoId)).get();
+  if (!todo) {
+    throw new Error('Todo not found');
+  }
+  
+  // Validate title if provided
+  if (data.title !== undefined) {
+    const trimmedTitle = data.title.trim();
+    if (!trimmedTitle) {
+      throw new Error('Title cannot be empty');
+    }
+    if (trimmedTitle.length > 500) {
+      throw new Error('Title is too long');
+    }
+    data.title = trimmedTitle;
+  }
+  
+  // Validate priority if provided
+  if (data.priority && !['low', 'medium', 'high'].includes(data.priority)) {
+    throw new Error('Invalid priority');
+  }
+  
   db.update(todos).set(data).where(eq(todos.id, todoId)).run();
   revalidatePath('/todos');
   revalidatePath('/calendar');
 }
 
 export async function deleteTodo(todoId: number) {
+  await requireUserId();
+  
+  // Validate todoId
+  if (!Number.isInteger(todoId) || todoId <= 0) {
+    throw new Error('Invalid todo ID');
+  }
+  
+  // Verify todo exists
+  const todo = db.select().from(todos).where(eq(todos.id, todoId)).get();
+  if (!todo) {
+    throw new Error('Todo not found');
+  }
+  
   db.delete(todoTags).where(eq(todoTags.todoId, todoId)).run();
   db.delete(todos).where(eq(todos.id, todoId)).run();
   revalidatePath('/todos');
@@ -172,6 +284,26 @@ export async function updateProjectPriority(projectId: number, priority: string)
 
 export async function addProjectNote(projectId: number, contentHtml: string) {
   const userId = await requireUserId();
+  
+  // Validate projectId
+  if (!Number.isInteger(projectId) || projectId <= 0) {
+    throw new Error('Invalid project ID');
+  }
+  
+  // Verify project exists
+  const project = db.select().from(projects).where(eq(projects.id, projectId)).get();
+  if (!project) {
+    throw new Error('Project not found');
+  }
+  
+  // Validate content (allow empty notes but limit size)
+  if (typeof contentHtml !== 'string') {
+    throw new Error('Invalid note content');
+  }
+  if (contentHtml.length > 100000) {
+    throw new Error('Note content is too large');
+  }
+  
   db.insert(projectNotes).values({
     projectId,
     contentMd: '',
@@ -193,9 +325,30 @@ export async function addProjectNote(projectId: number, contentHtml: string) {
 
 export async function addProjectTask(projectId: number, title: string) {
   const userId = await requireUserId();
+  
+  // Validate projectId
+  if (!Number.isInteger(projectId) || projectId <= 0) {
+    throw new Error('Invalid project ID');
+  }
+  
+  // Validate title
+  const trimmedTitle = title?.trim();
+  if (!trimmedTitle) {
+    throw new Error('Task title is required');
+  }
+  if (trimmedTitle.length > 500) {
+    throw new Error('Task title is too long');
+  }
+  
+  // Verify project exists
+  const project = db.select().from(projects).where(eq(projects.id, projectId)).get();
+  if (!project) {
+    throw new Error('Project not found');
+  }
+  
   db.insert(projectTasks).values({
     projectId,
-    title,
+    title: trimmedTitle,
     status: 'todo',
     sortOrder: 0,
   }).run();
@@ -204,7 +357,7 @@ export async function addProjectTask(projectId: number, title: string) {
     projectId,
     userId,
     action: 'task_added',
-    details: `Added task "${title}"`,
+    details: `Added task "${trimmedTitle}"`,
     createdAt: new Date().toISOString(),
   }).run();
 
@@ -253,6 +406,17 @@ export async function purgeOldCompletedTodos() {
 }
 
 export async function switchUser(userId: number) {
+  // Validate userId
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw new Error('Invalid user ID');
+  }
+  
+  // Verify user exists
+  const user = db.select().from(users).where(eq(users.id, userId)).get();
+  if (!user) {
+    throw new Error('User not found');
+  }
+  
   const { cookies } = await import('next/headers');
   const cookieStore = await cookies();
   cookieStore.set('tidyhouse_user', userId.toString(), {
@@ -349,6 +513,19 @@ export async function updateChoreInline(choreId: number, data: {
 }
 
 export async function deleteProject(projectId: number) {
+  await requireUserId();
+  
+  // Validate projectId
+  if (!Number.isInteger(projectId) || projectId <= 0) {
+    throw new Error('Invalid project ID');
+  }
+  
+  // Verify project exists
+  const project = db.select().from(projects).where(eq(projects.id, projectId)).get();
+  if (!project) {
+    throw new Error('Project not found');
+  }
+  
   // Delete related data first
   db.delete(projectTasks).where(eq(projectTasks.projectId, projectId)).run();
   db.delete(projectNotes).where(eq(projectNotes.projectId, projectId)).run();
