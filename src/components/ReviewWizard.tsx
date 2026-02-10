@@ -313,18 +313,18 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
         {/* Add tasks */}
         <div>
           <label className="text-sm font-medium text-warm-700 dark:text-warm-200 block mb-1.5">Add tasks</label>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <input
               type="text"
               value={newTaskInput}
               onChange={(e) => setNewTaskInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleAddTask()}
               placeholder="New task..."
-              className="flex-1 px-3 py-2.5 rounded-xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-700 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
+              className="flex-1 min-h-[44px] px-3 py-2.5 rounded-xl border border-warm-200 dark:border-warm-700 bg-white dark:bg-warm-700 text-sm focus:outline-none focus:ring-2 focus:ring-sage-500"
             />
             <button
               onClick={handleAddTask}
-              className="px-4 py-2.5 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 transition-colors"
+              className="inline-flex items-center justify-center min-h-[44px] px-4 bg-sage-500 text-white rounded-xl text-sm font-medium hover:bg-sage-600 transition-colors"
             >
               Add
             </button>
@@ -332,12 +332,12 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
           {pendingTasks.length > 0 && (
             <div className="mt-2 space-y-1">
               {pendingTasks.map((t, i) => (
-                <div key={i} className="flex items-center gap-2 text-sm text-warm-600 dark:text-warm-300">
-                  <span>➕</span>
-                  <span>{t}</span>
+                <div key={i} className="flex items-center gap-2 text-sm text-warm-600 dark:text-warm-300 min-h-[32px]">
+                  <span className="flex-shrink-0">➕</span>
+                  <span className="flex-1 min-w-0">{t}</span>
                   <button
                     onClick={() => setPendingTasks((prev) => prev.filter((_, j) => j !== i))}
-                    className="text-red-400 hover:text-red-600 text-xs ml-auto"
+                    className="flex-shrink-0 text-red-400 hover:text-red-600 text-xs p-1"
                   >
                     ✕
                   </button>
@@ -349,17 +349,17 @@ export function ReviewWizard({ projects }: { projects: ReviewProject[] }) {
       </div>
 
       {/* Navigation buttons */}
-      <div className="flex gap-3">
+      <div className="flex items-center gap-3">
         <button
           onClick={handleSkip}
-          className="flex-1 py-3 rounded-xl border border-warm-200 dark:border-warm-700 text-warm-600 dark:text-warm-300 font-medium hover:bg-warm-50 dark:hover:bg-warm-700 transition-colors"
+          className="flex-1 inline-flex items-center justify-center min-h-[48px] py-3 rounded-xl border border-warm-200 dark:border-warm-700 text-warm-600 dark:text-warm-300 font-medium hover:bg-warm-50 dark:hover:bg-warm-700 transition-colors"
         >
           Skip
         </button>
         <button
           onClick={handleNext}
           disabled={saving}
-          className="flex-1 py-3 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 disabled:opacity-50 transition-colors"
+          className="flex-1 inline-flex items-center justify-center min-h-[48px] py-3 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 disabled:opacity-50 transition-colors"
         >
           {saving ? 'Saving...' : currentIndex < total - 1 ? 'Next →' : 'Finish ✓'}
         </button>

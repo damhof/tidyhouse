@@ -178,9 +178,9 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
     >
       <Link href={`/projects/${project.id}`} className="block">
         <div className="flex items-start gap-2">
-          <span className="text-sm">{pi}</span>
+          <span className="text-sm flex-shrink-0 mt-0.5">{pi}</span>
           <div className="flex-1 min-w-0">
-            <p className={`font-medium text-warm-800 dark:text-warm-100 ${compact ? 'text-sm' : ''}`}>{project.title}</p>
+            <p className={`font-medium text-warm-800 dark:text-warm-100 leading-tight ${compact ? 'text-sm' : ''}`}>{project.title}</p>
             {project.description && (
               <p className={`text-xs text-warm-500 mt-0.5 ${compact ? 'line-clamp-1' : 'line-clamp-2'}`}>{project.description}</p>
             )}

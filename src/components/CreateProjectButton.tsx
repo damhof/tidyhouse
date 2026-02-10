@@ -17,7 +17,7 @@ export function CreateProjectButton() {
   return (
     <>
       <button onClick={() => setOpen(true)}
-        className="min-h-[44px] px-4 bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium text-sm transition-all duration-200 active:scale-95">
+        className="inline-flex items-center justify-center min-h-[44px] px-4 bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium text-sm transition-all duration-200 active:scale-95">
         + New Project
       </button>
 

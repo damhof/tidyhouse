@@ -436,16 +436,16 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
         <p className="text-sm text-warm-500 dark:text-warm-400 mb-4">
           Export all your data as a JSON backup, or import a previous backup to restore.
         </p>
-        <div className="flex gap-3">
+        <div className="flex items-center gap-3">
           <button
             onClick={handleExport}
-            className="flex-1 py-3 px-4 bg-sage-600 text-white rounded-xl font-medium text-sm hover:bg-sage-700 transition-colors"
+            className="flex-1 inline-flex items-center justify-center min-h-[48px] py-3 px-4 bg-sage-600 text-white rounded-xl font-medium text-sm hover:bg-sage-700 transition-colors"
           >
             📥 Export Data
           </button>
           <button
             onClick={handleImportClick}
-            className="flex-1 py-3 px-4 bg-warm-200 dark:bg-warm-700 text-warm-700 dark:text-warm-200 rounded-xl font-medium text-sm hover:bg-warm-300 dark:hover:bg-warm-600 transition-colors"
+            className="flex-1 inline-flex items-center justify-center min-h-[48px] py-3 px-4 bg-warm-200 dark:bg-warm-700 text-warm-700 dark:text-warm-200 rounded-xl font-medium text-sm hover:bg-warm-300 dark:hover:bg-warm-600 transition-colors"
           >
             📤 Import Data
           </button>
@@ -470,17 +470,17 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
             <p className="text-xs text-warm-400 mb-6">
               File: {importFile?.name}
             </p>
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => { setShowImportConfirm(false); setImportFile(null); }}
-                className="flex-1 py-2.5 px-4 bg-warm-200 dark:bg-warm-700 text-warm-700 dark:text-warm-200 rounded-xl font-medium text-sm"
+                className="flex-1 inline-flex items-center justify-center min-h-[44px] py-2.5 px-4 bg-warm-200 dark:bg-warm-700 text-warm-700 dark:text-warm-200 rounded-xl font-medium text-sm"
               >
                 Cancel
               </button>
               <button
                 onClick={handleImportConfirm}
                 disabled={importing}
-                className="flex-1 py-2.5 px-4 bg-red-600 text-white rounded-xl font-medium text-sm hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="flex-1 inline-flex items-center justify-center min-h-[44px] py-2.5 px-4 bg-red-600 text-white rounded-xl font-medium text-sm hover:bg-red-700 transition-colors disabled:opacity-50"
               >
                 {importing ? 'Importing...' : 'Overwrite & Import'}
               </button>
@@ -610,9 +610,9 @@ function ChoreForm({ name, freq, effort, pinnedDays, onNameChange, onFreqChange,
           ))}
         </div>
       </div>
-      <div className="flex gap-2">
-        <button onClick={onSave} className="px-3 py-1.5 bg-sage-600 text-white rounded-lg text-xs font-medium hover:bg-sage-700">Save</button>
-        <button onClick={onCancel} className="px-3 py-1.5 text-warm-500 text-xs">Cancel</button>
+      <div className="flex items-center gap-2">
+        <button onClick={onSave} className="inline-flex items-center justify-center min-h-[32px] px-3 py-1.5 bg-sage-600 text-white rounded-lg text-xs font-medium hover:bg-sage-700">Save</button>
+        <button onClick={onCancel} className="inline-flex items-center justify-center min-h-[32px] px-3 py-1.5 text-warm-500 text-xs hover:bg-warm-100 dark:hover:bg-warm-700 rounded-lg">Cancel</button>
       </div>
     </div>
   );

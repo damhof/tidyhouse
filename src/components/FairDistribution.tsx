@@ -29,12 +29,12 @@ export function FairDistribution({ users, weekDist, monthDist }: {
           <span className="text-sm font-medium text-warm-700 dark:text-warm-200">Fair Distribution</span>
         </div>
         {total > 0 && !expanded && (
-          <div className="flex items-center gap-1.5 text-xs text-warm-500">
+          <div className="flex items-center gap-2 text-xs text-warm-500">
             {users.map(u => {
               const count = dist.find(d => d.userId === u.id)?.count || 0;
               const pct = total > 0 ? Math.round((count / total) * 100) : 0;
               return (
-                <span key={u.id}>
+                <span key={u.id} className="flex items-center gap-0.5 tabular-nums">
                   {u.avatarEmoji} {pct}%
                 </span>
               );
@@ -99,11 +99,11 @@ export function FairDistribution({ users, weekDist, monthDist }: {
                   const pct = Math.round((count / total) * 100);
                   const colors = ['#7C9A82', '#6B8FBF', '#C77B5A', '#9B7CB8'];
                   return (
-                    <div key={u.id} className="flex items-center gap-2">
+                    <div key={u.id} className="flex items-center gap-2 min-h-[28px]">
                       <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: colors[i % colors.length] }} />
-                      <span className="text-sm">{u.avatarEmoji} {u.name}</span>
-                      <span className="ml-auto text-sm font-medium text-warm-600 dark:text-warm-300">{count}</span>
-                      <span className="text-xs text-warm-400 w-10 text-right">{pct}%</span>
+                      <span className="text-sm flex items-center gap-1">{u.avatarEmoji} {u.name}</span>
+                      <span className="ml-auto text-sm font-medium text-warm-600 dark:text-warm-300 tabular-nums">{count}</span>
+                      <span className="text-xs text-warm-400 w-10 text-right tabular-nums">{pct}%</span>
                     </div>
                   );
                 })}

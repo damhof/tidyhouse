@@ -229,16 +229,16 @@ export function WhatShouldIDo() {
               </div>
             </div>
 
-            <div className="flex gap-3">
+            <div className="flex items-center gap-3">
               <button
                 onClick={skipQuickPick}
-                className="flex-1 py-3 rounded-xl border-2 border-warm-200 dark:border-warm-700 text-warm-600 dark:text-warm-300 font-medium hover:bg-warm-50 dark:hover:bg-warm-800 transition-colors"
+                className="flex-1 inline-flex items-center justify-center min-h-[48px] py-3 rounded-xl border-2 border-warm-200 dark:border-warm-700 text-warm-600 dark:text-warm-300 font-medium hover:bg-warm-50 dark:hover:bg-warm-800 transition-colors"
               >
                 Skip →
               </button>
               <button
                 onClick={completeQuickPick}
-                className="flex-1 py-3 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-medium transition-colors active:scale-[0.98]"
+                className="flex-1 inline-flex items-center justify-center min-h-[48px] py-3 rounded-xl bg-sage-500 hover:bg-sage-600 text-white font-medium transition-colors active:scale-[0.98]"
               >
                 ✓ Done!
               </button>
@@ -328,7 +328,7 @@ export function WhatShouldIDo() {
                       } ${isJustDone ? 'animate-complete-pulse' : ''}`}
                     >
                       {/* Checkbox */}
-                      <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300 ${
+                      <div className={`w-7 h-7 rounded-full border-2 flex items-center justify-center flex-shrink-0 self-center transition-all duration-300 ${
                         done
                           ? 'bg-sage-500 border-sage-500 text-white'
                           : 'border-warm-300 dark:border-warm-600'
@@ -341,14 +341,14 @@ export function WhatShouldIDo() {
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <div className={`font-medium text-sm ${done ? 'line-through text-warm-400 dark:text-warm-500' : 'text-warm-800 dark:text-warm-100'}`}>
+                        <div className={`font-medium text-sm leading-tight ${done ? 'line-through text-warm-400 dark:text-warm-500' : 'text-warm-800 dark:text-warm-100'}`}>
                           {chore.name}
                         </div>
-                        <div className="text-xs text-warm-400 dark:text-warm-500 flex items-center gap-1.5">
-                          <span>{chore.roomIcon}</span>
+                        <div className="text-xs text-warm-400 dark:text-warm-500 flex items-center gap-1.5 mt-0.5">
+                          <span className="flex-shrink-0">{chore.roomIcon}</span>
                           <span>{chore.roomName}</span>
                           <span>·</span>
-                          <span>{EFFORT_EMOJI[chore.effort]} ~{chore.estimatedMinutes}min</span>
+                          <span className="flex-shrink-0">{EFFORT_EMOJI[chore.effort]} ~{chore.estimatedMinutes}min</span>
                         </div>
                       </div>
                     </button>

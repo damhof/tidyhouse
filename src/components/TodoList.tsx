@@ -116,17 +116,17 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                     } ${isCompleting ? 'scale-95 opacity-50' : ''} ${isExpanded ? 'ring-2 ring-sage-300 dark:ring-sage-700' : 'hover:shadow-md hover:-translate-y-0.5'}`}>
                     <button
                       onClick={(e) => { e.stopPropagation(); handleToggle(todo); }}
-                      className={`w-6 h-6 mt-0.5 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
+                      className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center flex-shrink-0 transition-all duration-200 ${
                         todo.completed ? 'bg-sage-500 border-sage-500 text-white' : 'border-warm-300 dark:border-warm-500 hover:border-sage-400 hover:bg-sage-50 dark:hover:bg-sage-900/20'
                       }`}>
                       {todo.completed && <span className="text-xs animate-checkmark">✓</span>}
                     </button>
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
+                      <div className="flex items-center gap-2 flex-wrap min-h-[24px]">
                         {todo.priority && priorityDot[todo.priority] && (
-                          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 ${priorityDot[todo.priority]}`} title={`${todo.priority} priority`} />
+                          <span className={`w-2.5 h-2.5 rounded-full flex-shrink-0 self-center ${priorityDot[todo.priority]}`} title={`${todo.priority} priority`} />
                         )}
-                        <p className={`font-medium ${todo.completed ? 'line-through text-warm-400' : 'text-warm-800 dark:text-warm-100'}`}>{todo.title}</p>
+                        <p className={`font-medium leading-tight ${todo.completed ? 'line-through text-warm-400' : 'text-warm-800 dark:text-warm-100'}`}>{todo.title}</p>
                         {todo.isProjectTask && todo.projectTitle && (
                           <span className="text-xs px-2 py-0.5 rounded-full font-medium bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300">
                             📋 {todo.projectTitle}
@@ -354,13 +354,13 @@ function InlineEditor({ todo, users, projects, allTags, onClose }: {
           ))}
         </div>
       )}
-      <div className="flex gap-2 justify-between">
-        <button onClick={handleDelete} className="text-xs px-3 py-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+      <div className="flex items-center gap-2 justify-between">
+        <button onClick={handleDelete} className="inline-flex items-center justify-center text-xs px-3 py-1.5 min-h-[32px] rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
           🗑 Delete
         </button>
-        <div className="flex gap-2">
-          <button onClick={onClose} className="text-xs px-3 py-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">Cancel</button>
-          <button onClick={handleSave} disabled={saving} className="text-xs px-3 py-1.5 rounded-lg bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors disabled:opacity-50">
+        <div className="flex items-center gap-2">
+          <button onClick={onClose} className="inline-flex items-center justify-center text-xs px-3 py-1.5 min-h-[32px] rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">Cancel</button>
+          <button onClick={handleSave} disabled={saving} className="inline-flex items-center justify-center text-xs px-3 py-1.5 min-h-[32px] rounded-lg bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors disabled:opacity-50">
             {saving ? 'Saving...' : 'Save'}
           </button>
         </div>

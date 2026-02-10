@@ -75,11 +75,11 @@ export function AddTodoForm({ users, projects, tags = [] }: { users: User[]; pro
           ))}
         </div>
       )}
-      <div className="flex gap-2 justify-end">
+      <div className="flex items-center gap-2 justify-end">
         <button type="button" onClick={() => { setOpen(false); setSelectedTagIds([]); }}
-          className="px-4 py-2 text-sm rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors">Cancel</button>
+          className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 text-sm rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors">Cancel</button>
         <button type="submit"
-          className="px-4 py-2 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl transition-colors font-medium">Add</button>
+          className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl transition-colors font-medium">Add</button>
       </div>
     </form>
   );

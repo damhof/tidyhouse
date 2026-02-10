@@ -149,10 +149,10 @@ function ChoreEditForm({ chore, users, onSave, onCancel }: {
           ))}
         </div>
       </div>
-      <div className="flex gap-2 justify-end">
-        <button onClick={onCancel} className="px-3 py-1.5 text-warm-500 text-sm rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600">Cancel</button>
+      <div className="flex items-center gap-2 justify-end">
+        <button onClick={onCancel} className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 text-warm-500 text-sm rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600">Cancel</button>
         <button onClick={() => onSave({ name, frequencyDays: freq, effort, pinnedDays: pinnedDays || null, assignedTo })}
-          className="px-4 py-1.5 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600">Save</button>
+          className="inline-flex items-center justify-center min-h-[36px] px-4 py-1.5 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600">Save</button>
       </div>
     </div>
   );
@@ -384,11 +384,11 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
                 <div className="flex items-center gap-2">
                   <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
                   <button onClick={() => setEditing(true)}
-                    className="text-xs px-3 py-1.5 rounded-lg bg-warm-200 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-300 dark:hover:bg-warm-600 transition-colors font-medium">
+                    className="inline-flex items-center justify-center min-h-[32px] text-xs px-3 py-1.5 rounded-lg bg-warm-200 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-300 dark:hover:bg-warm-600 transition-colors font-medium">
                     ✏️ Edit
                   </button>
                 </div>
-                <button onClick={onToggleExpand} className="text-xs text-warm-400 hover:text-warm-600 transition-colors px-2 py-1">
+                <button onClick={onToggleExpand} className="inline-flex items-center justify-center min-h-[32px] text-xs text-warm-400 hover:text-warm-600 transition-colors px-2 py-1 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700">
                   Close ✕
                 </button>
               </div>
@@ -691,11 +691,11 @@ export function ExpandableRoomList({ rooms: initialRooms, users }: { rooms: Room
               className="w-full text-sm bg-warm-50 dark:bg-warm-700 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-sage-400" />
             <input type="time" value={pastTime} onChange={e => setPastTime(e.target.value)}
               className="w-full text-sm bg-warm-50 dark:bg-warm-700 rounded-lg px-3 py-2.5 outline-none focus:ring-2 focus:ring-sage-400" />
-            <div className="flex gap-2 pt-1">
+            <div className="flex items-center gap-2 pt-1">
               <button onClick={() => setShowPastDatePicker(false)}
-                className="flex-1 text-sm py-2.5 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors font-medium min-h-[48px]">Back</button>
+                className="flex-1 inline-flex items-center justify-center text-sm py-2.5 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors font-medium min-h-[48px]">Back</button>
               <button onClick={handlePastComplete}
-                className="flex-1 text-sm py-2.5 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors min-h-[48px]">Complete</button>
+                className="flex-1 inline-flex items-center justify-center text-sm py-2.5 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors min-h-[48px]">Complete</button>
             </div>
           </div>
         )}
