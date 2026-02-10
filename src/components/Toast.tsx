@@ -8,6 +8,7 @@ export type ToastData = {
   onUndo?: () => void;
 };
 
+const MAX_TOASTS = 3;
 let toastListener: ((toast: ToastData) => void) | null = null;
 
 export function showToast(toast: ToastData) {
@@ -19,7 +20,19 @@ export function ToastContainer() {
 
   useEffect(() => {
     toastListener = (toast) => {
-      setToasts((prev) => [...prev, toast]);
+      setToasts((prev) => {
+        const newToast = { ...toast, exiting: false };
+        const newToasts = [...prev, newToast];
+        // Remove oldest non-exiting toasts if we're at the limit
+        const activeCount = newToasts.filter(t => !t.exiting).length;
+        if (activeCount > MAX_TOASTS) {
+          const oldestIndex = newToasts.findIndex(t => !t.exiting);
+          if (oldestIndex !== -1) {
+            return newToasts.map((t, i) => i === oldestIndex ? { ...t, exiting: true } : t);
+          }
+        }
+        return newToasts;
+      });
       setTimeout(() => {
         setToasts((prev) => prev.map((t) => t.id === toast.id ? { ...t, exiting: true } : t));
         setTimeout(() => {

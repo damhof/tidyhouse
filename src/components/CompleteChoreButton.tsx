@@ -111,6 +111,13 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
     setCustomDate(d.toISOString().split('T')[0]);
   }, []);
 
+  // Check if a date is selected (for highlighting quick buttons)
+  const isDateSelected = useCallback((daysAgo: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return customDate === d.toISOString().split('T')[0];
+  }, [customDate]);
+
   const sizeClass = size === 'sm' ? 'w-9 h-9 text-base' : 'w-11 h-11 text-lg';
 
   return (
@@ -152,16 +159,16 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
           <div>
             <p className="text-xs text-warm-400 mb-2">Quick select</p>
             <div className="flex gap-2 flex-wrap">
-              <button onClick={() => setQuickDate(0)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${customDate === new Date().toISOString().split('T')[0] ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
+              <button onClick={() => setQuickDate(0)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${isDateSelected(0) ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
                 Today
               </button>
-              <button onClick={() => setQuickDate(1)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return customDate === d.toISOString().split('T')[0]; })() ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
+              <button onClick={() => setQuickDate(1)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${isDateSelected(1) ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
                 Yesterday
               </button>
-              <button onClick={() => setQuickDate(2)} className="text-xs px-3 py-2 rounded-lg font-medium bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">
+              <button onClick={() => setQuickDate(2)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${isDateSelected(2) ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
                 2 days ago
               </button>
-              <button onClick={() => setQuickDate(7)} className="text-xs px-3 py-2 rounded-lg font-medium bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">
+              <button onClick={() => setQuickDate(7)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${isDateSelected(7) ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
                 1 week ago
               </button>
             </div>
