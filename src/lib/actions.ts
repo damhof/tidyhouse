@@ -4,7 +4,7 @@ import { db } from '@/db';
 import { choreCompletions, todos, projects, projectTasks, projectNotes, projectActivity, projectTags, projectAssignees, users, tags, todoTags } from '@/db/schema';
 import { requireUserId, getCurrentUserId } from './auth';
 import { revalidatePath } from 'next/cache';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 
 // --- Chore Actions ---
 export async function completeChore(choreId: number, completedAt?: string): Promise<number> {
@@ -324,6 +324,28 @@ export async function getTodoTags(todoId: number) {
     .innerJoin(tags, eq(todoTags.tagId, tags.id))
     .where(eq(todoTags.todoId, todoId))
     .all();
+}
+
+export async function getChoreHistory(choreId: number, limit = 5) {
+  return db.select({
+    id: choreCompletions.id,
+    userId: choreCompletions.userId,
+    completedAt: choreCompletions.completedAt,
+  })
+    .from(choreCompletions)
+    .where(eq(choreCompletions.choreId, choreId))
+    .orderBy(sql`${choreCompletions.completedAt} DESC`)
+    .limit(limit)
+    .all();
+}
+
+export async function updateChoreInline(choreId: number, data: {
+  name?: string; frequencyDays?: number; effort?: 'quick' | 'medium' | 'intensive'; pinnedDays?: string | null; assignedTo?: number | null;
+}) {
+  const { chores } = await import('@/db/schema');
+  db.update(chores).set(data).where(eq(chores.id, choreId)).run();
+  revalidatePath('/');
+  revalidatePath('/chores');
 }
 
 export async function deleteProject(projectId: number) {

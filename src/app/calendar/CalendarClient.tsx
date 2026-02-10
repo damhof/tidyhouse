@@ -175,18 +175,35 @@ export function CalendarClient({ completions, pinnedChores, dueTodos, users }: {
                 const hasOverdue = items.todos.some(t => !t.completed && new Date(t.dueDate!) < new Date());
                 const hasPinned = items.pinned.length > 0;
 
+                // Determine cell background color
+                const allDone = items.completions.length > 0 && items.todos.every(t => t.completed);
+                const cellBg = hasOverdue
+                  ? 'bg-red-50 dark:bg-red-950/20'
+                  : (hasTodos && !allDone)
+                    ? 'bg-amber-50 dark:bg-amber-950/10'
+                    : hasCompletions
+                      ? 'bg-green-50 dark:bg-green-950/10'
+                      : 'bg-white dark:bg-warm-800';
+
                 return (
                   <button
                     key={key}
                     onClick={() => setSelectedDate(isSelected ? null : key)}
-                    className={`bg-white dark:bg-warm-800 min-h-[48px] lg:min-h-[80px] p-1 lg:p-2 text-left transition-all hover:bg-warm-50 dark:hover:bg-warm-800/80 ${
+                    className={`${cellBg} min-h-[48px] lg:min-h-[80px] p-1 lg:p-2 text-left transition-all hover:brightness-95 dark:hover:brightness-110 ${
                       isSelected ? 'ring-2 ring-sage-400 ring-inset' : ''
                     }`}
                   >
-                    <div className={`text-xs font-medium mb-0.5 ${
-                      isToday ? 'bg-sage-500 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-warm-600 dark:text-warm-300'
-                    }`}>
-                      {day.getDate()}
+                    <div className="flex items-center gap-1 mb-0.5">
+                      <div className={`text-xs font-medium ${
+                        isToday ? 'bg-sage-500 text-white w-6 h-6 rounded-full flex items-center justify-center' : 'text-warm-600 dark:text-warm-300'
+                      }`}>
+                        {day.getDate()}
+                      </div>
+                      {items.completions.length > 0 && (
+                        <span className="text-[9px] font-bold bg-green-500 text-white rounded-full w-4 h-4 flex items-center justify-center leading-none">
+                          {items.completions.length}
+                        </span>
+                      )}
                     </div>
                     {/* Dots/indicators */}
                     <div className="flex flex-wrap gap-0.5 mt-0.5">
@@ -255,8 +272,8 @@ export function CalendarClient({ completions, pinnedChores, dueTodos, users }: {
           )}
         </div>
 
-        {/* Day detail panel */}
-        <div className={`${selectedDate ? '' : 'hidden lg:block'}`}>
+        {/* Day detail panel (desktop only — mobile has its own below) */}
+        <div className={`hidden lg:block`}>
           {selectedItems ? (
             <DayDetail
               date={selectedDate!}
@@ -273,9 +290,9 @@ export function CalendarClient({ completions, pinnedChores, dueTodos, users }: {
         </div>
       </div>
 
-      {/* Mobile: day detail as bottom sheet when selected */}
+      {/* Mobile/Tablet: day detail when selected (hidden on desktop since desktop has side panel) */}
       {selectedDate && selectedItems && (
-        <div className="lg:hidden mt-4">
+        <div className="block lg:hidden mt-4">
           <DayDetail
             date={selectedDate}
             items={selectedItems}

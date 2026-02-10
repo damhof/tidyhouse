@@ -17,7 +17,7 @@ export function ReviewButton() {
   return (
     <Link
       href="/projects/review"
-      className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl font-medium text-sm transition-colors ${
+      className={`inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-medium text-sm transition-colors min-h-[44px] whitespace-nowrap flex-shrink-0 ${
         isMonday
           ? 'bg-sage-500 text-white hover:bg-sage-600 shadow-sm'
           : 'bg-warm-100 dark:bg-warm-700 text-warm-700 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'

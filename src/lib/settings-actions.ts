@@ -55,13 +55,14 @@ export async function reorderRooms(roomIds: number[]) {
 }
 
 // --- Chore Actions ---
-export async function createChore(roomId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null) {
+export async function createChore(roomId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null, assignedTo?: number | null) {
   db.insert(chores).values({
     roomId,
     name,
     frequencyDays,
     effort,
     pinnedDays: pinnedDays || null,
+    assignedTo: assignedTo || null,
     createdAt: new Date().toISOString(),
   }).run();
   revalidatePath('/settings');
@@ -69,8 +70,8 @@ export async function createChore(roomId: number, name: string, frequencyDays: n
   revalidatePath('/');
 }
 
-export async function updateChore(choreId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null) {
-  db.update(chores).set({ name, frequencyDays, effort, pinnedDays: pinnedDays || null }).where(eq(chores.id, choreId)).run();
+export async function updateChore(choreId: number, name: string, frequencyDays: number, effort: 'quick' | 'medium' | 'intensive', pinnedDays?: string | null, assignedTo?: number | null) {
+  db.update(chores).set({ name, frequencyDays, effort, pinnedDays: pinnedDays || null, assignedTo: assignedTo ?? null }).where(eq(chores.id, choreId)).run();
   revalidatePath('/settings');
   revalidatePath('/chores');
   revalidatePath('/');
@@ -144,6 +145,7 @@ export async function importData(jsonString: string) {
       frequencyDays: c.frequencyDays ?? c.frequency_days,
       effort: c.effort || 'medium',
       pinnedDays: c.pinnedDays ?? c.pinned_days ?? null,
+      assignedTo: c.assignedTo ?? c.assigned_to ?? null,
       createdAt: c.createdAt ?? c.created_at ?? new Date().toISOString(),
     }).run();
   }

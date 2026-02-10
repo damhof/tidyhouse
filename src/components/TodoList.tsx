@@ -3,7 +3,7 @@
 import { completeTodo, uncompleteTodo, deleteTodo, toggleProjectTask, updateTodo, setTodoTags } from '@/lib/actions';
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { ContextMenu } from './ContextMenu';
+import { BottomSheet, BottomSheetItem } from './BottomSheet';
 
 type Tag = { id: number; name: string; color: string };
 type Todo = {
@@ -26,7 +26,7 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
   const projectMap = Object.fromEntries(projects.map(p => [p.id, p]));
   const router = useRouter();
   const [completing, setCompleting] = useState<number | null>(null);
-  const [contextMenu, setContextMenu] = useState<{ todo: Todo; x: number; y: number } | null>(null);
+  const [bottomSheetTodo, setBottomSheetTodo] = useState<Todo | null>(null);
   const longPressRef = { timer: null as ReturnType<typeof setTimeout> | null, startPos: null as { x: number; y: number } | null, triggered: false };
 
   const handleTodoTouchStart = useCallback((e: React.TouchEvent, todo: Todo) => {
@@ -36,7 +36,7 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
     longPressRef.triggered = false;
     longPressRef.timer = setTimeout(() => {
       longPressRef.triggered = true;
-      setContextMenu({ todo, x: touch.clientX, y: touch.clientY });
+      setBottomSheetTodo(todo);
     }, 500);
   }, []);
 
@@ -108,7 +108,7 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
                     onTouchMove={handleTodoTouchMove}
                     onTouchEnd={handleTodoTouchEnd}
                     onTouchCancel={handleTodoTouchEnd}
-                    onContextMenu={(e) => { e.preventDefault(); if (!todo.isProjectTask) setContextMenu({ todo, x: e.clientX, y: e.clientY }); }}
+                    onContextMenu={(e) => { e.preventDefault(); if (!todo.isProjectTask) setBottomSheetTodo(todo); }}
                     className={`flex items-start gap-3 rounded-2xl p-4 shadow-sm border group transition-all duration-200 cursor-pointer card-interactive ${
                       todo.isProjectTask
                         ? 'bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-800/50'
@@ -253,25 +253,27 @@ export function TodoList({ todos, users, projects, tags: allTags, label, default
           )}
         </div>
       )}
-      {contextMenu && (
-        <ContextMenu
-          position={{ x: contextMenu.x, y: contextMenu.y }}
-          onClose={() => setContextMenu(null)}
-          items={[
-            { label: 'Edit', icon: '✏️', onClick: () => setExpandedId(contextMenu.todo.id) },
-            {
-              label: contextMenu.todo.priority === 'high' ? 'Priority: Medium' : contextMenu.todo.priority === 'medium' ? 'Priority: Low' : 'Priority: High',
-              icon: contextMenu.todo.priority === 'high' ? '🟡' : contextMenu.todo.priority === 'medium' ? '🔵' : '🔴',
-              onClick: async () => {
-                const next = contextMenu.todo.priority === 'high' ? 'medium' : contextMenu.todo.priority === 'medium' ? 'low' : 'high';
-                await updateTodo(contextMenu.todo.id, { priority: next });
+      <BottomSheet isOpen={!!bottomSheetTodo} onClose={() => setBottomSheetTodo(null)} title={bottomSheetTodo?.title}>
+        {bottomSheetTodo && (
+          <div className="pb-2">
+            <BottomSheetItem icon="✏️" label="Edit" onClick={() => { setExpandedId(bottomSheetTodo.id); setBottomSheetTodo(null); }} />
+            <BottomSheetItem
+              icon={bottomSheetTodo.priority === 'high' ? '🟡' : bottomSheetTodo.priority === 'medium' ? '🔵' : '🔴'}
+              label={bottomSheetTodo.priority === 'high' ? 'Priority: Medium' : bottomSheetTodo.priority === 'medium' ? 'Priority: Low' : 'Priority: High'}
+              onClick={async () => {
+                const next = bottomSheetTodo.priority === 'high' ? 'medium' : bottomSheetTodo.priority === 'medium' ? 'low' : 'high';
+                await updateTodo(bottomSheetTodo.id, { priority: next });
+                setBottomSheetTodo(null);
                 router.refresh();
-              },
-            },
-            { label: 'Delete', icon: '🗑', danger: true, onClick: async () => { await deleteTodo(contextMenu.todo.id); router.refresh(); } },
-          ]}
-        />
-      )}
+              }}
+            />
+            <BottomSheetItem icon="🗑" label="Delete" danger onClick={async () => { await deleteTodo(bottomSheetTodo.id); setBottomSheetTodo(null); router.refresh(); }} />
+            <div className="mt-2">
+              <BottomSheetItem icon="✕" label="Cancel" onClick={() => setBottomSheetTodo(null)} />
+            </div>
+          </div>
+        )}
+      </BottomSheet>
     </div>
   );
 }

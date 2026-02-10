@@ -23,11 +23,17 @@ type Chore = { id: number; roomId: number; name: string; frequencyDays: number; 
 
 const DAY_LABELS_TOP = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
-const EMOJI_OPTIONS = [
-  '👤', '👩', '👨', '🧑', '👧', '👦', '🧒', '👶',
-  '😀', '😎', '🤓', '🥳', '😺', '🐶', '🦊', '🐻',
-  '🌟', '🌈', '🔥', '💎', '🎯', '🎨', '🎵', '🌸',
-  '🍕', '🌮', '☕', '🧁', '🍣', '🥑', '🍩', '🧋',
+const EMOJI_CATEGORIES: { label: string; emojis: string[] }[] = [
+  { label: '👤 People', emojis: ['👤', '👩', '👨', '🧑', '👧', '👦', '🧒', '👶', '👵', '👴', '🧔', '👩‍🦰', '👨‍🦱', '👩‍🦳', '🧑‍🦲', '🥷', '🧙', '🧚', '🧛', '🧜', '🦸', '🦹', '🧝', '👸', '🤴', '👮', '👷', '💂', '🕵️', '👩‍⚕️', '👨‍🍳', '👩‍🎓', '🧑‍🎤', '👩‍💻', '🧑‍🚀'] },
+  { label: '😀 Faces', emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😊', '😎', '🤓', '🥳', '😇', '🥰', '😍', '🤩', '🥸', '😏', '🫠', '🤭', '🫡', '🤗', '🤔', '🤫', '🤐', '😴', '🥱', '😈', '👻', '👽', '🤖', '😺', '🙈', '🙉', '🙊'] },
+  { label: '🐶 Animals', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🦄', '🐝', '🦋', '🐢', '🐙', '🦑', '🦀', '🐬', '🐳', '🦈', '🐊', '🦕', '🦖', '🦩', '🦜', '🦚', '🐧', '🐦', '🦆'] },
+  { label: '🍕 Food', emojis: ['🍕', '🌮', '🍔', '🍣', '🍜', '🥑', '🍩', '🧁', '☕', '🧋', '🍰', '🎂', '🍪', '🥐', '🧀', '🍓', '🍑', '🥭', '🍉', '🫐', '🍇', '🍌', '🥥', '🥕', '🌽', '🥦', '🍆', '🍄', '🥜', '🍫', '🍬', '🍭', '🍿', '🧇', '🥞'] },
+  { label: '🌿 Nature', emojis: ['🌸', '🌺', '🌻', '🌹', '🌷', '🪻', '🌿', '🍀', '🌴', '🌵', '🍁', '🌊', '⛰️', '🌙', '⭐', '☀️', '🌈', '❄️', '🔥', '💧', '🌍', '🪐', '🌋', '⛈️', '☁️', '🌤️', '🌪️', '🌏', '🪨', '💎', '🌾', '🎋', '🎍', '🍂', '🌲'] },
+  { label: '🎯 Objects', emojis: ['🎯', '🎨', '🎵', '🎮', '🏀', '⚽', '🎸', '🎭', '📷', '💎', '👑', '🔮', '🧸', '🎪', '🛸', '🚀', '⚡', '💡', '🌟', '✨', '🎀', '🎁', '🎈', '🏆', '🥇', '🏅', '🎤', '🎧', '🎬', '🖼️', '🎲', '🧩', '♟️', '🎻', '🥁'] },
+  { label: '❤️ Hearts', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '❤️‍🔥', '💔', '❣️', '💟'] },
+  { label: '🚗 Travel', emojis: ['🚗', '🚕', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '✈️', '🚀', '🛸', '⛵', '🚢', '🚁', '🚂', '🚲', '🛵', '🏍️', '🛴', '🚡'] },
+  { label: '🏠 Places', emojis: ['🏠', '🏡', '🏢', '🏰', '🏯', '⛪', '🕌', '🛕', '🏛️', '🏟️', '🏝️', '⛰️', '🏔️', '🗻', '🌋', '🏕️', '🎡', '🎢', '🗽', '🗿'] },
+  { label: '⚽ Sports', emojis: ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🏒', '🥊', '🥋', '⛳', '🎿', '⛸️', '🤿', '🏄', '🚴', '🧘'] },
 ];
 
 const ROOM_ICONS = [
@@ -214,15 +220,22 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
             </div>
           ))}
           {showEmojiPicker !== null && (
-            <div className="grid grid-cols-8 gap-1 p-3 bg-warm-50 dark:bg-warm-900 rounded-xl border border-warm-200 dark:border-warm-700">
-              {EMOJI_OPTIONS.map(emoji => (
-                <button
-                  key={emoji}
-                  onClick={() => handleEmojiSelect(showEmojiPicker, emoji)}
-                  className="text-2xl p-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
-                >
-                  {emoji}
-                </button>
+            <div className="bg-warm-50 dark:bg-warm-900 rounded-xl border border-warm-200 dark:border-warm-700 p-3 max-h-[320px] overflow-y-auto space-y-3">
+              {EMOJI_CATEGORIES.map(cat => (
+                <div key={cat.label}>
+                  <h4 className="text-xs font-semibold text-warm-400 mb-1.5">{cat.label}</h4>
+                  <div className="grid grid-cols-8 gap-1">
+                    {cat.emojis.map(emoji => (
+                      <button
+                        key={emoji}
+                        onClick={() => handleEmojiSelect(showEmojiPicker!, emoji)}
+                        className="text-2xl p-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               ))}
             </div>
           )}

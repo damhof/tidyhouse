@@ -47,7 +47,13 @@ export async function getRoomsWithScores() {
     const choresWithStaleness = roomChores.map(chore => {
       const completion = completionMap[chore.id];
       const staleness = getStaleness(chore.frequencyDays, completion?.lastCompleted || null);
-      return { ...chore, ...staleness, lastCompleted: completion?.lastCompleted || null, lastUserId: completion?.lastUserId || null };
+      return {
+        ...chore,
+        ...staleness,
+        lastCompleted: completion?.lastCompleted || null,
+        lastUserId: completion?.lastUserId || null,
+        assignedTo: chore.assignedTo || null,
+      };
     });
     const score = getRoomScore(choresWithStaleness);
     return { ...room, chores: choresWithStaleness, score };

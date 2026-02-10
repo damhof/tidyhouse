@@ -4,7 +4,7 @@ import { updateProjectStatus, updateProjectPriority } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import { useState, useCallback, useRef, DragEvent } from 'react';
 import Link from 'next/link';
-import { ContextMenu } from './ContextMenu';
+import { BottomSheet, BottomSheetItem } from './BottomSheet';
 
 type Project = {
   id: number; title: string; description: string | null;
@@ -129,7 +129,7 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
 }) {
   const router = useRouter();
   const pi = priorityIcon[project.priority] || '🟡';
-  const [ctxMenu, setCtxMenu] = useState<{ x: number; y: number } | null>(null);
+  const [showSheet, setShowSheet] = useState(false);
   const lpTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lpStart = useRef<{ x: number; y: number } | null>(null);
   const lpTriggered = useRef(false);
@@ -140,7 +140,7 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
     lpTriggered.current = false;
     lpTimer.current = setTimeout(() => {
       lpTriggered.current = true;
-      setCtxMenu({ x: t.clientX, y: t.clientY });
+      setShowSheet(true);
     }, 500);
   }, []);
 
@@ -170,7 +170,7 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
       onTouchMove={onTouchMove}
       onTouchEnd={clearLp}
       onTouchCancel={clearLp}
-      onContextMenu={(e) => { e.preventDefault(); setCtxMenu({ x: e.clientX, y: e.clientY }); }}
+      onContextMenu={(e) => { e.preventDefault(); setShowSheet(true); }}
       onClick={(e) => { if (lpTriggered.current) { e.preventDefault(); e.stopPropagation(); } }}
       className={`block bg-white dark:bg-warm-800 rounded-xl p-4 shadow-sm border border-warm-200 dark:border-warm-700 transition-all duration-200 card-interactive ${
         draggable ? 'cursor-grab active:cursor-grabbing' : ''
@@ -200,24 +200,22 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
         </div>
       </Link>
     </div>
-    {ctxMenu && (
-      <ContextMenu
-        position={ctxMenu}
-        onClose={() => setCtxMenu(null)}
-        items={[
-          ...statusOptions.map(([key, cfg]) => ({
-            label: `Move to ${cfg.label}`,
-            icon: cfg.emoji,
-            onClick: async () => { await updateProjectStatus(project.id, key); router.refresh(); },
-          })),
-          ...priorityOptions.map(p => ({
-            label: `Priority: ${p.charAt(0).toUpperCase() + p.slice(1)}`,
-            icon: priorityIcon[p] || '🟡',
-            onClick: async () => { await updateProjectPriority(project.id, p); router.refresh(); },
-          })),
-        ]}
-      />
-    )}
+    <BottomSheet isOpen={showSheet} onClose={() => setShowSheet(false)} title={project.title}>
+      <div className="pb-2">
+        {statusOptions.map(([key, cfg]) => (
+          <BottomSheetItem key={key} icon={cfg.emoji} label={`Move to ${cfg.label}`}
+            onClick={async () => { await updateProjectStatus(project.id, key); setShowSheet(false); router.refresh(); }} />
+        ))}
+        <div className="h-px bg-warm-200 dark:bg-warm-700 mx-4 my-1" />
+        {priorityOptions.map(p => (
+          <BottomSheetItem key={p} icon={priorityIcon[p] || '🟡'} label={`Priority: ${p.charAt(0).toUpperCase() + p.slice(1)}`}
+            onClick={async () => { await updateProjectPriority(project.id, p); setShowSheet(false); router.refresh(); }} />
+        ))}
+        <div className="mt-2">
+          <BottomSheetItem icon="✕" label="Cancel" onClick={() => setShowSheet(false)} />
+        </div>
+      </div>
+    </BottomSheet>
     </>
   );
 }

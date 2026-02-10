@@ -106,5 +106,34 @@ sqlite.exec(`
   );
 `);
 
+// Migrations for new columns (safe to run multiple times)
+const migrations = [
+  // Add pinned_days column to chores
+  `ALTER TABLE chores ADD COLUMN pinned_days TEXT`,
+  // Add priority column to todos
+  `ALTER TABLE todos ADD COLUMN priority TEXT`,
+  // Add category column to todos
+  `ALTER TABLE todos ADD COLUMN category TEXT`,
+  // Add content_html to project_notes
+  `ALTER TABLE project_notes ADD COLUMN content_html TEXT`,
+  // Add updated_at to project_notes
+  `ALTER TABLE project_notes ADD COLUMN updated_at TEXT`,
+  // Add show_in_todos to project_tasks
+  `ALTER TABLE project_tasks ADD COLUMN show_in_todos INTEGER NOT NULL DEFAULT 0`,
+  // Add assigned_to column to chores for user assignment
+  `ALTER TABLE chores ADD COLUMN assigned_to INTEGER REFERENCES users(id)`,
+];
+
+for (const sql of migrations) {
+  try {
+    sqlite.exec(sql);
+  } catch (err: any) {
+    // Ignore "duplicate column" errors
+    if (!err.message?.includes('duplicate column')) {
+      console.warn('Migration warning:', err.message);
+    }
+  }
+}
+
 console.log('Database migrated successfully');
 sqlite.close();
