@@ -8,6 +8,7 @@ import { BottomSheet, BottomSheetItem } from './BottomSheet';
 import { useRouter } from 'next/navigation';
 import { getChoreHistory, updateChoreInline } from '@/lib/actions';
 import { useLongPress } from '@/hooks/useLongPress';
+import { incrementCompletionCount } from './NotificationPrompt';
 
 type Chore = {
   id: number; name: string; effort: string; frequencyDays: number;
@@ -525,6 +526,7 @@ export function ExpandableRoomList({ rooms: initialRooms, users }: { rooms: Room
       ? new Date(`${pastDate}T${pastTime}`).toISOString()
       : new Date(`${pastDate}T12:00:00`).toISOString();
     await completeChore(bottomSheetChore.id, dateStr);
+    incrementCompletionCount();
     setBottomSheetChore(null);
     setShowPastDatePicker(false);
     router.refresh();

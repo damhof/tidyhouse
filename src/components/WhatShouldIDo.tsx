@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { fetchSuggestedChores, fetchSessionPlan, completeChore, undoChoreCompletion } from '@/lib/actions';
 import { showToast } from './Toast';
+import { incrementCompletionCount } from './NotificationPrompt';
 
 type SuggestedChore = {
   id: number;
@@ -79,6 +80,7 @@ export function WhatShouldIDo() {
 
     try {
       const completionId = await completeChore(choreId);
+      incrementCompletionCount();
       showToast({
         id: `wsid-${choreId}-${Date.now()}`,
         message: `✓ ${choreName} — done!`,

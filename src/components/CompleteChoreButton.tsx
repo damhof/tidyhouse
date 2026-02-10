@@ -4,6 +4,7 @@ import { completeChore, undoChoreCompletion } from '@/lib/actions';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { showToast } from './Toast';
 import { BottomSheet } from './BottomSheet';
+import { incrementCompletionCount } from './NotificationPrompt';
 
 type Props = {
   choreId: number;
@@ -27,6 +28,7 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
 
     try {
       const completionId = await completeChore(choreId, completedAt);
+      incrementCompletionCount();
       const timeLabel = completedAt ? ` (${new Date(completedAt).toLocaleDateString()})` : '';
       showToast({
         id: `chore-${choreId}-${Date.now()}`,
