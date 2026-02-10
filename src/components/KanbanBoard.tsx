@@ -172,7 +172,7 @@ function ProjectCard({ project, tags, compact = false, draggable = false, isDrag
       onTouchCancel={clearLp}
       onContextMenu={(e) => { e.preventDefault(); setShowSheet(true); }}
       onClick={(e) => { if (lpTriggered.current) { e.preventDefault(); e.stopPropagation(); } }}
-      className={`block bg-white dark:bg-warm-800 rounded-xl p-4 shadow-sm border border-warm-200 dark:border-warm-700 transition-all duration-200 card-interactive ${
+      className={`block bg-white dark:bg-warm-800 rounded-xl p-4 shadow-sm border border-warm-200 dark:border-warm-700 transition-all duration-200 longpress-target ${
         draggable ? 'cursor-grab active:cursor-grabbing' : ''
       } ${isDragging ? 'opacity-30 scale-95' : 'hover:shadow-md hover:-translate-y-0.5'}`}
     >

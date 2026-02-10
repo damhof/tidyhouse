@@ -65,9 +65,17 @@ export function BottomSheet({ isOpen, onClose, title, children }: BottomSheetPro
     }
   }, [isOpen]);
 
-  if (!mounted || !visible) return null;
+  // Dynamic mobile detection - recalculate on each render when open
+  const [isDesktop, setIsDesktop] = useState(false);
+  
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
-  const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+  if (!mounted || !visible) return null;
 
   const content = isDesktop ? (
     // Desktop: centered modal

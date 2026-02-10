@@ -52,11 +52,28 @@ html, body {
 }
 
 /* Disable text selection on interactive elements */
-button, a, nav, [role="button"], .card-interactive {
+button, a, nav, [role="button"] {
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
   touch-action: manipulation;
+}
+
+/* Cards with long-press need different touch handling */
+.card-interactive {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  /* Use pan-y to allow vertical scroll while preserving long-press */
+  touch-action: pan-y;
+}
+
+/* Elements that support long-press gestures */
+.longpress-target {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  touch-action: pan-y pinch-zoom;
 }
 
 /* Haptic-style press feedback for tappable elements */

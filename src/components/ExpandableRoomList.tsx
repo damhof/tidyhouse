@@ -185,9 +185,9 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
   }, [onComplete]);
 
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Don't start long-press if touching the complete button
+    // Don't start long-press if touching the complete button directly
     const target = e.target as HTMLElement;
-    if (target.closest('button')) return;
+    if (target.closest('[data-complete-btn]')) return;
 
     const touch = e.touches[0];
     touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
@@ -279,7 +279,7 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
 
       <div
         ref={rowRef}
-        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800 cursor-pointer select-none touch-manipulation
+        className={`flex items-center gap-3 py-2.5 px-3 rounded-xl transition-all hover:bg-warm-50 dark:hover:bg-warm-700/50 relative bg-white dark:bg-warm-800 cursor-pointer select-none longpress-target
           ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}
           ${isExpanded ? 'ring-2 ring-sage-300 dark:ring-sage-700' : ''}
           ${isSwiping ? '' : 'duration-300'}`}
@@ -288,6 +288,7 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onTouchCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); setSwipeX(0); setIsSwiping(false); touchStartRef.current = null; longPressTriggered.current = false; }}
+        onContextMenu={(e) => { e.preventDefault(); onLongPress(); }}
         onClick={(e) => { 
           // Prevent click if long-press was triggered or if swiping
           if (longPressTriggered.current || isSwiping) {
@@ -315,7 +316,7 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
             {lastUser && <span className="hidden lg:inline"> · {lastUser.avatarEmoji}</span>}
           </p>
         </div>
-        <div onClick={e => e.stopPropagation()}>
+        <div onClick={e => e.stopPropagation()} data-complete-btn>
           <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
         </div>
       </div>
