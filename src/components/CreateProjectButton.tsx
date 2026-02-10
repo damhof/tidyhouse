@@ -30,23 +30,30 @@ export function CreateProjectButton() {
               className="w-full text-lg font-medium bg-transparent outline-none border-b border-warm-200 dark:border-warm-700 pb-2 placeholder-warm-400 focus:border-sage-400 transition-colors" />
             <textarea name="description" placeholder="Description (optional)" rows={3}
               className="w-full text-sm bg-transparent outline-none placeholder-warm-400 resize-none" />
-            <div className="flex gap-3">
-              <div className="flex flex-col gap-0.5">
-                <label className="text-[10px] font-medium text-warm-400 dark:text-warm-500 uppercase tracking-wider">Priority</label>
-                <select name="priority" defaultValue="medium" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none">
+            <div className="flex flex-wrap gap-3">
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-warm-500 dark:text-warm-400">Priority</label>
+                <select name="priority" defaultValue="medium" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2.5 outline-none min-h-[42px] focus:ring-2 focus:ring-sage-400">
                   <option value="low">🟢 Low</option>
                   <option value="medium">🟡 Medium</option>
                   <option value="high">🟠 High</option>
                   <option value="urgent">🔴 Urgent</option>
                 </select>
               </div>
-              <input name="targetDate" type="date" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2 outline-none" />
+              <div className="flex flex-col gap-1">
+                <label className="text-xs font-medium text-warm-500 dark:text-warm-400">Target Date</label>
+                <input name="targetDate" type="date" className="text-sm bg-warm-100 dark:bg-warm-800 rounded-xl px-3 py-2.5 outline-none min-h-[42px] focus:ring-2 focus:ring-sage-400" />
+              </div>
             </div>
-            <div className="flex gap-2 justify-end">
+            <div className="flex gap-3 justify-end pt-2">
               <button type="button" onClick={() => setOpen(false)}
-                className="px-4 py-2 text-sm rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors">Cancel</button>
+                className="px-5 py-2.5 text-sm rounded-xl text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 transition-colors font-medium min-h-[44px]">
+                Cancel
+              </button>
               <button type="submit"
-                className="px-4 py-2 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium transition-colors">Create</button>
+                className="px-5 py-2.5 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl font-medium transition-colors min-h-[44px]">
+                Create Project
+              </button>
             </div>
           </form>
         </div>

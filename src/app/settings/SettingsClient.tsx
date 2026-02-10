@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/components/ThemeProvider';
 import { updateUserName } from '@/lib/actions';
@@ -23,23 +23,50 @@ type Chore = { id: number; roomId: number; name: string; frequencyDays: number; 
 
 const DAY_LABELS_TOP = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
+// Expanded emoji categories with more variety
 const EMOJI_CATEGORIES: { label: string; emojis: string[] }[] = [
-  { label: '👤 People', emojis: ['👤', '👩', '👨', '🧑', '👧', '👦', '🧒', '👶', '👵', '👴', '🧔', '👩‍🦰', '👨‍🦱', '👩‍🦳', '🧑‍🦲', '🥷', '🧙', '🧚', '🧛', '🧜', '🦸', '🦹', '🧝', '👸', '🤴', '👮', '👷', '💂', '🕵️', '👩‍⚕️', '👨‍🍳', '👩‍🎓', '🧑‍🎤', '👩‍💻', '🧑‍🚀'] },
-  { label: '😀 Faces', emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😊', '😎', '🤓', '🥳', '😇', '🥰', '😍', '🤩', '🥸', '😏', '🫠', '🤭', '🫡', '🤗', '🤔', '🤫', '🤐', '😴', '🥱', '😈', '👻', '👽', '🤖', '😺', '🙈', '🙉', '🙊'] },
-  { label: '🐶 Animals', emojis: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁', '🐮', '🐷', '🐸', '🐵', '🐔', '🦄', '🐝', '🦋', '🐢', '🐙', '🦑', '🦀', '🐬', '🐳', '🦈', '🐊', '🦕', '🦖', '🦩', '🦜', '🦚', '🐧', '🐦', '🦆'] },
-  { label: '🍕 Food', emojis: ['🍕', '🌮', '🍔', '🍣', '🍜', '🥑', '🍩', '🧁', '☕', '🧋', '🍰', '🎂', '🍪', '🥐', '🧀', '🍓', '🍑', '🥭', '🍉', '🫐', '🍇', '🍌', '🥥', '🥕', '🌽', '🥦', '🍆', '🍄', '🥜', '🍫', '🍬', '🍭', '🍿', '🧇', '🥞'] },
-  { label: '🌿 Nature', emojis: ['🌸', '🌺', '🌻', '🌹', '🌷', '🪻', '🌿', '🍀', '🌴', '🌵', '🍁', '🌊', '⛰️', '🌙', '⭐', '☀️', '🌈', '❄️', '🔥', '💧', '🌍', '🪐', '🌋', '⛈️', '☁️', '🌤️', '🌪️', '🌏', '🪨', '💎', '🌾', '🎋', '🎍', '🍂', '🌲'] },
-  { label: '🎯 Objects', emojis: ['🎯', '🎨', '🎵', '🎮', '🏀', '⚽', '🎸', '🎭', '📷', '💎', '👑', '🔮', '🧸', '🎪', '🛸', '🚀', '⚡', '💡', '🌟', '✨', '🎀', '🎁', '🎈', '🏆', '🥇', '🏅', '🎤', '🎧', '🎬', '🖼️', '🎲', '🧩', '♟️', '🎻', '🥁'] },
-  { label: '❤️ Hearts', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '❤️‍🔥', '💔', '❣️', '💟'] },
-  { label: '🚗 Travel', emojis: ['🚗', '🚕', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '✈️', '🚀', '🛸', '⛵', '🚢', '🚁', '🚂', '🚲', '🛵', '🏍️', '🛴', '🚡'] },
-  { label: '🏠 Places', emojis: ['🏠', '🏡', '🏢', '🏰', '🏯', '⛪', '🕌', '🛕', '🏛️', '🏟️', '🏝️', '⛰️', '🏔️', '🗻', '🌋', '🏕️', '🎡', '🎢', '🗽', '🗿'] },
-  { label: '⚽ Sports', emojis: ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🏒', '🥊', '🥋', '⛳', '🎿', '⛸️', '🤿', '🏄', '🚴', '🧘'] },
+  { label: '⭐ Popular', emojis: ['😊', '😎', '🥳', '🤩', '🥰', '🦊', '🐱', '🐶', '🦁', '🐻', '🐼', '🦄', '🌟', '✨', '💫', '🔥', '💖', '🌈', '🎯', '🚀', '🎨', '🎮', '🎵', '👑', '💎', '🌸', '🍀', '⚡', '🏆', '🥇'] },
+  { label: '👤 People', emojis: ['👤', '👩', '👨', '🧑', '👧', '👦', '🧒', '👶', '👵', '👴', '🧔', '👩‍🦰', '👨‍🦱', '👩‍🦳', '🧑‍🦲', '🥷', '🧙', '🧙‍♀️', '🧚', '🧚‍♂️', '🧛', '🧛‍♀️', '🧜', '🧜‍♂️', '🦸', '🦸‍♀️', '🦹', '🦹‍♀️', '🧝', '🧝‍♀️', '👸', '🤴', '👮', '👮‍♀️', '👷', '👷‍♀️', '💂', '💂‍♀️', '🕵️', '🕵️‍♀️', '👩‍⚕️', '👨‍⚕️', '👩‍🍳', '👨‍🍳', '👩‍🎓', '👨‍🎓', '👩‍🎤', '👨‍🎤', '👩‍💻', '👨‍💻', '👩‍🚀', '👨‍🚀', '👩‍🔬', '👨‍🔬', '👩‍🎨', '👨‍🎨', '👩‍🚒', '👨‍🚒', '👩‍✈️', '👨‍✈️', '🧑‍🎄', '🤶', '🎅'] },
+  { label: '😀 Faces', emojis: ['😀', '😃', '😄', '😁', '😆', '😅', '🤣', '😂', '🙂', '😊', '😇', '🥰', '😍', '🤩', '😘', '😗', '😚', '😋', '😛', '😜', '🤪', '😝', '🤑', '🤗', '🤭', '🤫', '🤔', '🤐', '🤨', '😐', '😑', '😶', '😏', '😒', '🙄', '😬', '🤥', '😌', '😔', '😪', '🤤', '😴', '😷', '🤒', '🤕', '🤢', '🤮', '🤧', '🥵', '🥶', '🥴', '😵', '🤯', '🤠', '🥳', '🥸', '😎', '🤓', '🧐', '😕', '😟', '🙁', '☹️', '😮', '😯', '😲', '😳', '🥺', '😦', '😧', '😨', '😰', '😥', '😢', '😭', '😱', '😖', '😣', '😞', '😓', '😩', '😫', '🥱', '😤', '😡', '😠', '🤬', '😈', '👿', '💀', '☠️', '💩', '🤡', '👹', '👺', '👻', '👽', '👾', '🤖', '🫠', '🫡'] },
+  { label: '🐶 Animals', emojis: ['🐶', '🐕', '🐕‍🦺', '🐩', '🐺', '🦊', '🦝', '🐱', '🐈', '🐈‍⬛', '🦁', '🐯', '🐅', '🐆', '🐴', '🐎', '🦄', '🦓', '🦌', '🐮', '🐂', '🐃', '🐄', '🐷', '🐖', '🐗', '🐽', '🐏', '🐑', '🐐', '🐪', '🐫', '🦙', '🦒', '🐘', '🦣', '🦏', '🦛', '🐭', '🐁', '🐀', '🐹', '🐰', '🐇', '🐿️', '🦫', '🦔', '🦇', '🐻', '🐻‍❄️', '🐨', '🐼', '🦥', '🦦', '🦨', '🦘', '🦡', '🐾', '🦃', '🐔', '🐓', '🐣', '🐤', '🐥', '🐦', '🐧', '🕊️', '🦅', '🦆', '🦢', '🦉', '🦤', '🪶', '🦩', '🦜', '🦚', '🐸', '🐊', '🐢', '🦎', '🐍', '🐲', '🐉', '🦕', '🦖', '🐳', '🐋', '🐬', '🦭', '🐟', '🐠', '🐡', '🦈', '🐙', '🐚', '🦀', '🦞', '🦐', '🦑', '🦪', '🐌', '🦋', '🐛', '🐜', '🐝', '🪲', '🐞', '🦗', '🪳', '🕷️', '🕸️', '🦂', '🪱'] },
+  { label: '🍕 Food', emojis: ['🍇', '🍈', '🍉', '🍊', '🍋', '🍌', '🍍', '🥭', '🍎', '🍏', '🍐', '🍑', '🍒', '🍓', '🫐', '🥝', '🍅', '🫒', '🥥', '🥑', '🍆', '🥔', '🥕', '🌽', '🌶️', '🫑', '🥒', '🥬', '🥦', '🧄', '🧅', '🍄', '🥜', '🌰', '🍞', '🥐', '🥖', '🫓', '🥨', '🥯', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩', '🥓', '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🫔', '🥙', '🧆', '🥚', '🍳', '🥘', '🍲', '🫕', '🥣', '🥗', '🍿', '🧈', '🧂', '🥫', '🍱', '🍘', '🍙', '🍚', '🍛', '🍜', '🍝', '🍠', '🍢', '🍣', '🍤', '🍥', '🥮', '🍡', '🥟', '🥠', '🥡', '🦀', '🦞', '🦐', '🦑', '🦪', '🍦', '🍧', '🍨', '🍩', '🍪', '🎂', '🍰', '🧁', '🥧', '🍫', '🍬', '🍭', '🍮', '🍯', '🍼', '🥛', '☕', '🫖', '🍵', '🍶', '🍾', '🍷', '🍸', '🍹', '🍺', '🍻', '🥂', '🥃', '🥤', '🧋', '🧃', '🧉', '🧊'] },
+  { label: '🌿 Nature', emojis: ['🌵', '🎄', '🌲', '🌳', '🌴', '🪵', '🌱', '🌿', '☘️', '🍀', '🎍', '🪴', '🎋', '🍃', '🍂', '🍁', '🪺', '🪹', '🍄', '🐚', '🪸', '🪨', '🌾', '💐', '🌷', '🌹', '🥀', '🌺', '🌸', '🌼', '🌻', '🪻', '🌞', '🌝', '🌛', '🌜', '🌚', '🌕', '🌖', '🌗', '🌘', '🌑', '🌒', '🌓', '🌔', '🌙', '🌎', '🌍', '🌏', '🪐', '💫', '⭐', '🌟', '✨', '⚡', '☄️', '💥', '🔥', '🌪️', '🌈', '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '🌨️', '❄️', '☃️', '⛄', '🌬️', '💨', '💧', '💦', '☔', '☂️', '🌊', '🌫️'] },
+  { label: '🎯 Objects', emojis: ['⌚', '📱', '💻', '⌨️', '🖥️', '🖨️', '🖱️', '🖲️', '💽', '💾', '💿', '📀', '🎥', '📷', '📸', '📹', '📼', '🔍', '🔎', '💡', '🔦', '🏮', '🪔', '📔', '📕', '📖', '📗', '📘', '📙', '📚', '📓', '📒', '📃', '📜', '📄', '📰', '🗞️', '📑', '🔖', '🏷️', '💰', '💴', '💵', '💶', '💷', '🪙', '💸', '💳', '🧾', '💹', '✉️', '📧', '📨', '📩', '📤', '📥', '📦', '📫', '📪', '📬', '📭', '📮', '🗳️', '✏️', '✒️', '🖋️', '🖊️', '🖌️', '🖍️', '📝', '💼', '📁', '📂', '🗂️', '📅', '📆', '🗒️', '🗓️', '📇', '📈', '📉', '📊', '📋', '📌', '📍', '📎', '🖇️', '📏', '📐', '✂️', '🗃️', '🗄️', '🗑️', '🔒', '🔓', '🔏', '🔐', '🔑', '🗝️', '🔨', '🪓', '⛏️', '⚒️', '🛠️', '🗡️', '⚔️', '🔫', '🪃', '🏹', '🛡️', '🪚', '🔧', '🪛', '🔩', '⚙️', '🗜️', '⚖️', '🦯', '🔗', '⛓️', '🪝', '🧰', '🧲', '🪜', '⚗️', '🧪', '🧫', '🧬', '🔬', '🔭', '📡', '💉', '🩸', '💊', '🩹', '🩺', '🚪', '🛗', '🪞', '🪟', '🛏️', '🛋️', '🪑', '🚽', '🪠', '🚿', '🛁', '🪤', '🪒', '🧴', '🧷', '🧹', '🧺', '🧻', '🪣', '🧼', '🪥', '🧽', '🧯', '🛒', '🚬', '⚰️', '🪦', '⚱️', '🗿', '🪧', '🏧'] },
+  { label: '🎨 Arts', emojis: ['🎨', '🖼️', '🎭', '🎪', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🎸', '🪕', '🎻', '🪗', '🎬', '🎮', '🕹️', '🎰', '🎲', '🧩', '🪀', '🪁', '♠️', '♥️', '♦️', '♣️', '🃏', '🀄', '🎴', '🎯', '🔮', '🪄', '🧿', '🪬', '🎱', '🪩', '🎀', '🎁', '🎈', '🎉', '🎊', '🎏', '🎐', '🎑', '🧧', '🪅', '🪆', '🖼️', '🧵', '🪡', '🧶', '🪢'] },
+  { label: '❤️ Hearts & Symbols', emojis: ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💔', '❤️‍🔥', '❤️‍🩹', '❣️', '💕', '💞', '💓', '💗', '💖', '💘', '💝', '💟', '☮️', '✝️', '☪️', '🕉️', '☸️', '✡️', '🔯', '🕎', '☯️', '☦️', '🛐', '⛎', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒', '♓', '🆔', '⚛️', '🉑', '☢️', '☣️', '📴', '📳', '🈶', '🈚', '🈸', '🈺', '🈷️', '✴️', '🆚', '💮', '🉐', '㊙️', '㊗️', '🈴', '🈵', '🈹', '🈲', '🅰️', '🅱️', '🆎', '🆑', '🅾️', '🆘', '❌', '⭕', '🛑', '⛔', '📛', '🚫', '💯', '💢', '♨️', '🚷', '🚯', '🚳', '🚱', '🔞', '📵', '🚭', '❗', '❕', '❓', '❔', '‼️', '⁉️', '🔅', '🔆', '〽️', '⚠️', '🚸', '🔱', '⚜️', '🔰', '♻️', '✅', '🈯', '💹', '❇️', '✳️', '❎', '🌐', '💠', 'Ⓜ️', '🌀', '💤', '🏧', '🚾', '♿', '🅿️', '🛗', '🈳', '🈂️', '🛂', '🛃', '🛄', '🛅', '🚹', '🚺', '🚼', '⚧️', '🚻', '🚮', '🎦', '📶', '🈁', '🔣', 'ℹ️', '🔤', '🔡', '🔠', '🆖', '🆗', '🆙', '🆒', '🆕', '🆓', '0️⃣', '1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7️⃣', '8️⃣', '9️⃣', '🔟', '🔢', '#️⃣', '*️⃣', '⏏️', '▶️', '⏸️', '⏯️', '⏹️', '⏺️', '⏭️', '⏮️', '⏩', '⏪', '⏫', '⏬', '◀️', '🔼', '🔽', '➡️', '⬅️', '⬆️', '⬇️', '↗️', '↘️', '↙️', '↖️', '↕️', '↔️', '↪️', '↩️', '⤴️', '⤵️', '🔀', '🔁', '🔂', '🔄', '🔃', '🎵', '🎶', '➕', '➖', '➗', '✖️', '🟰', '♾️', '💲', '💱', '™️', '©️', '®️', '〰️', '➰', '➿', '🔚', '🔙', '🔛', '🔝', '🔜', '✔️', '☑️', '🔘', '🔴', '🟠', '🟡', '🟢', '🔵', '🟣', '⚫', '⚪', '🟤', '🔺', '🔻', '🔸', '🔹', '🔶', '🔷', '🔳', '🔲', '▪️', '▫️', '◾', '◽', '◼️', '◻️', '🟥', '🟧', '🟨', '🟩', '🟦', '🟪', '⬛', '⬜', '🟫', '🔈', '🔇', '🔉', '🔊', '🔔', '🔕', '📣', '📢', '💬', '💭', '🗯️', '♠️', '♣️', '♥️', '♦️', '🃏', '🎴', '🀄', '🕐', '🕑', '🕒', '🕓', '🕔', '🕕', '🕖', '🕗', '🕘', '🕙', '🕚', '🕛', '🕜', '🕝', '🕞', '🕟', '🕠', '🕡', '🕢', '🕣', '🕤', '🕥', '🕦', '🕧'] },
+  { label: '🚗 Travel & Transport', emojis: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🛻', '🚚', '🚛', '🚜', '🦯', '🦽', '🦼', '🛴', '🚲', '🛵', '🏍️', '🛺', '🚨', '🚔', '🚍', '🚘', '🚖', '🚡', '🚠', '🚟', '🚃', '🚋', '🚞', '🚝', '🚄', '🚅', '🚈', '🚂', '🚆', '🚇', '🚊', '🚉', '✈️', '🛫', '🛬', '🛩️', '💺', '🛰️', '🚀', '🛸', '🚁', '🛶', '⛵', '🚤', '🛥️', '🛳️', '⛴️', '🚢', '⚓', '🪝', '⛽', '🚧', '🚦', '🚥', '🚏', '🗺️', '🗿', '🗽', '🗼', '🏰', '🏯', '🏟️', '🎡', '🎢', '🎠', '⛲', '⛱️', '🏖️', '🏝️', '🏜️', '🌋', '⛰️', '🏔️', '🗻', '🏕️', '⛺', '🛖', '🏠', '🏡', '🏘️', '🏚️', '🏗️', '🏭', '🏢', '🏬', '🏣', '🏤', '🏥', '🏦', '🏨', '🏪', '🏫', '🏩', '💒', '🏛️', '⛪', '🕌', '🕍', '🛕', '🕋', '⛩️', '🛤️', '🛣️', '🗾', '🎑', '🏞️', '🌅', '🌄', '🌠', '🎇', '🎆', '🌇', '🌆', '🏙️', '🌃', '🌌', '🌉', '🌁'] },
+  { label: '⚽ Sports & Activities', emojis: ['⚽', '🏀', '🏈', '⚾', '🥎', '🎾', '🏐', '🏉', '🥏', '🎱', '🪀', '🏓', '🏸', '🏒', '🏑', '🥍', '🏏', '🪃', '🥅', '⛳', '🪁', '🏹', '🎣', '🤿', '🥊', '🥋', '🎽', '🛹', '🛼', '🛷', '⛸️', '🥌', '🎿', '⛷️', '🏂', '🪂', '🏋️', '🏋️‍♀️', '🤼', '🤸', '🤸‍♀️', '⛹️', '⛹️‍♀️', '🤺', '🤾', '🤾‍♀️', '🏌️', '🏌️‍♀️', '🏇', '🧘', '🧘‍♀️', '🏄', '🏄‍♀️', '🏊', '🏊‍♀️', '🤽', '🤽‍♀️', '🚣', '🚣‍♀️', '🧗', '🧗‍♀️', '🚵', '🚵‍♀️', '🚴', '🚴‍♀️', '🏆', '🥇', '🥈', '🥉', '🏅', '🎖️', '🏵️', '🎗️', '🎫', '🎟️', '🎪', '🤹', '🤹‍♀️', '🎭', '🩰', '🎨', '🎬', '🎤', '🎧', '🎼', '🎹', '🥁', '🪘', '🎷', '🎺', '🪗', '🎸', '🪕', '🎻', '🪈', '🎲', '♟️', '🎯', '🎳', '🎮', '🕹️', '🎰'] },
+  { label: '🏳️ Flags', emojis: ['🏳️', '🏴', '🏴‍☠️', '🏁', '🚩', '🎌', '🏳️‍🌈', '🏳️‍⚧️', '🇺🇳', '🇦🇫', '🇦🇱', '🇩🇿', '🇦🇸', '🇦🇩', '🇦🇴', '🇦🇮', '🇦🇶', '🇦🇬', '🇦🇷', '🇦🇲', '🇦🇼', '🇦🇺', '🇦🇹', '🇦🇿', '🇧🇸', '🇧🇭', '🇧🇩', '🇧🇧', '🇧🇾', '🇧🇪', '🇧🇿', '🇧🇯', '🇧🇲', '🇧🇹', '🇧🇴', '🇧🇦', '🇧🇼', '🇧🇷', '🇮🇴', '🇻🇬', '🇧🇳', '🇧🇬', '🇧🇫', '🇧🇮', '🇰🇭', '🇨🇲', '🇨🇦', '🇮🇨', '🇨🇻', '🇧🇶', '🇰🇾', '🇨🇫', '🇹🇩', '🇨🇱', '🇨🇳', '🇨🇽', '🇨🇨', '🇨🇴', '🇰🇲', '🇨🇬', '🇨🇩', '🇨🇰', '🇨🇷', '🇨🇮', '🇭🇷', '🇨🇺', '🇨🇼', '🇨🇾', '🇨🇿', '🇩🇰', '🇩🇯', '🇩🇲', '🇩🇴', '🇪🇨', '🇪🇬', '🇸🇻', '🇬🇶', '🇪🇷', '🇪🇪', '🇸🇿', '🇪🇹', '🇪🇺', '🇫🇰', '🇫🇴', '🇫🇯', '🇫🇮', '🇫🇷', '🇬🇫', '🇵🇫', '🇹🇫', '🇬🇦', '🇬🇲', '🇬🇪', '🇩🇪', '🇬🇭', '🇬🇮', '🇬🇷', '🇬🇱', '🇬🇩', '🇬🇵', '🇬🇺', '🇬🇹', '🇬🇬', '🇬🇳', '🇬🇼', '🇬🇾', '🇭🇹', '🇭🇳', '🇭🇰', '🇭🇺', '🇮🇸', '🇮🇳', '🇮🇩', '🇮🇷', '🇮🇶', '🇮🇪', '🇮🇲', '🇮🇱', '🇮🇹', '🇯🇲', '🇯🇵', '🎌', '🇯🇪', '🇯🇴', '🇰🇿', '🇰🇪', '🇰🇮', '🇽🇰', '🇰🇼', '🇰🇬', '🇱🇦', '🇱🇻', '🇱🇧', '🇱🇸', '🇱🇷', '🇱🇾', '🇱🇮', '🇱🇹', '🇱🇺', '🇲🇴', '🇲🇬', '🇲🇼', '🇲🇾', '🇲🇻', '🇲🇱', '🇲🇹', '🇲🇭', '🇲🇶', '🇲🇷', '🇲🇺', '🇾🇹', '🇲🇽', '🇫🇲', '🇲🇩', '🇲🇨', '🇲🇳', '🇲🇪', '🇲🇸', '🇲🇦', '🇲🇿', '🇲🇲', '🇳🇦', '🇳🇷', '🇳🇵', '🇳🇱', '🇳🇨', '🇳🇿', '🇳🇮', '🇳🇪', '🇳🇬', '🇳🇺', '🇳🇫', '🇰🇵', '🇲🇰', '🇲🇵', '🇳🇴', '🇴🇲', '🇵🇰', '🇵🇼', '🇵🇸', '🇵🇦', '🇵🇬', '🇵🇾', '🇵🇪', '🇵🇭', '🇵🇳', '🇵🇱', '🇵🇹', '🇵🇷', '🇶🇦', '🇷🇪', '🇷🇴', '🇷🇺', '🇷🇼', '🇼🇸', '🇸🇲', '🇸🇹', '🇸🇦', '🇸🇳', '🇷🇸', '🇸🇨', '🇸🇱', '🇸🇬', '🇸🇽', '🇸🇰', '🇸🇮', '🇬🇸', '🇸🇧', '🇸🇴', '🇿🇦', '🇰🇷', '🇸🇸', '🇪🇸', '🇱🇰', '🇧🇱', '🇸🇭', '🇰🇳', '🇱🇨', '🇵🇲', '🇻🇨', '🇸🇩', '🇸🇷', '🇸🇪', '🇨🇭', '🇸🇾', '🇹🇼', '🇹🇯', '🇹🇿', '🇹🇭', '🇹🇱', '🇹🇬', '🇹🇰', '🇹🇴', '🇹🇹', '🇹🇳', '🇹🇷', '🇹🇲', '🇹🇨', '🇹🇻', '🇻🇮', '🇺🇬', '🇺🇦', '🇦🇪', '🇬🇧', '🏴󠁧󠁢󠁥󠁮󠁧󠁿', '🏴󠁧󠁢󠁳󠁣󠁴󠁿', '🏴󠁧󠁢󠁷󠁬󠁳󠁿', '🇺🇸', '🇺🇾', '🇺🇿', '🇻🇺', '🇻🇦', '🇻🇪', '🇻🇳', '🇼🇫', '🇪🇭', '🇾🇪', '🇿🇲', '🇿🇼'] },
+  { label: '✋ Hands & Gestures', emojis: ['👋', '🤚', '🖐️', '✋', '🖖', '👌', '🤌', '🤏', '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '🫵', '🫱', '🫲', '🫳', '🫴', '👈', '👉', '👆', '🖕', '👇', '☝️', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '🫶', '👐', '🤲', '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦾', '🦿', '🦵', '🦶', '👂', '🦻', '👃', '🧠', '🫀', '🫁', '🦷', '🦴', '👀', '👁️', '👅', '👄', '🫦', '💋', '👶', '👧', '🧒', '👦', '👩', '🧑', '👨', '👩‍🦱', '🧑‍🦱', '👨‍🦱', '👩‍🦰', '🧑‍🦰', '👨‍🦰', '👱‍♀️', '👱', '👱‍♂️', '👩‍🦳', '🧑‍🦳', '👨‍🦳', '👩‍🦲', '🧑‍🦲', '👨‍🦲', '🧔‍♀️', '🧔', '🧔‍♂️', '👵', '🧓', '👴', '👲', '👳‍♀️', '👳', '👳‍♂️', '🧕', '👮‍♀️', '👮', '👮‍♂️', '👷‍♀️', '👷', '👷‍♂️', '💂‍♀️', '💂', '💂‍♂️', '🕵️‍♀️', '🕵️', '🕵️‍♂️', '👩‍⚕️', '🧑‍⚕️', '👨‍⚕️', '👩‍🌾', '🧑‍🌾', '👨‍🌾', '👩‍🍳', '🧑‍🍳', '👨‍🍳', '👩‍🎓', '🧑‍🎓', '👨‍🎓', '👩‍🎤', '🧑‍🎤', '👨‍🎤', '👩‍🏫', '🧑‍🏫', '👨‍🏫', '👩‍🏭', '🧑‍🏭', '👨‍🏭', '👩‍💻', '🧑‍💻', '👨‍💻', '👩‍💼', '🧑‍💼', '👨‍💼', '👩‍🔧', '🧑‍🔧', '👨‍🔧', '👩‍🔬', '🧑‍🔬', '👨‍🔬', '👩‍🎨', '🧑‍🎨', '👨‍🎨', '👩‍🚒', '🧑‍🚒', '👨‍🚒', '👩‍✈️', '🧑‍✈️', '👨‍✈️', '👩‍🚀', '🧑‍🚀', '👨‍🚀', '👩‍⚖️', '🧑‍⚖️', '👨‍⚖️', '👰‍♀️', '👰', '👰‍♂️', '🤵‍♀️', '🤵', '🤵‍♂️', '👸', '🤴', '🥷', '🦸‍♀️', '🦸', '🦸‍♂️', '🦹‍♀️', '🦹', '🦹‍♂️', '🤶', '🧑‍🎄', '🎅', '🧙‍♀️', '🧙', '🧙‍♂️', '🧝‍♀️', '🧝', '🧝‍♂️', '🧛‍♀️', '🧛', '🧛‍♂️', '🧟‍♀️', '🧟', '🧟‍♂️', '🧞‍♀️', '🧞', '🧞‍♂️', '🧜‍♀️', '🧜', '🧜‍♂️', '🧚‍♀️', '🧚', '🧚‍♂️', '👼', '🤰', '🫃', '🫄', '🤱', '👩‍🍼', '🧑‍🍼', '👨‍🍼', '🙇‍♀️', '🙇', '🙇‍♂️', '💁‍♀️', '💁', '💁‍♂️', '🙅‍♀️', '🙅', '🙅‍♂️', '🙆‍♀️', '🙆', '🙆‍♂️', '🙋‍♀️', '🙋', '🙋‍♂️', '🧏‍♀️', '🧏', '🧏‍♂️', '🤦‍♀️', '🤦', '🤦‍♂️', '🤷‍♀️', '🤷', '🤷‍♂️', '🙎‍♀️', '🙎', '🙎‍♂️', '🙍‍♀️', '🙍', '🙍‍♂️', '💇‍♀️', '💇', '💇‍♂️', '💆‍♀️', '💆', '💆‍♂️', '🧖‍♀️', '🧖', '🧖‍♂️', '💅', '🤳', '💃', '🕺', '👯‍♀️', '👯', '👯‍♂️', '🕴️', '👩‍🦽', '🧑‍🦽', '👨‍🦽', '👩‍🦼', '🧑‍🦼', '👨‍🦼', '🚶‍♀️', '🚶', '🚶‍♂️', '👩‍🦯', '🧑‍🦯', '👨‍🦯', '🧎‍♀️', '🧎', '🧎‍♂️', '🏃‍♀️', '🏃', '🏃‍♂️', '🧍‍♀️', '🧍', '🧍‍♂️', '👫', '👭', '👬', '👩‍❤️‍👨', '👩‍❤️‍👩', '👨‍❤️‍👨', '💑', '👩‍❤️‍💋‍👨', '👩‍❤️‍💋‍👩', '👨‍❤️‍💋‍👨', '💏', '👪', '👨‍👩‍👦', '👨‍👩‍👧', '👨‍👩‍👧‍👦', '👨‍👩‍👦‍👦', '👨‍👩‍👧‍👧', '👨‍👦', '👨‍👦‍👦', '👨‍👧', '👨‍👧‍👦', '👨‍👧‍👧', '👩‍👦', '👩‍👦‍👦', '👩‍👧', '👩‍👧‍👦', '👩‍👧‍👧', '🗣️', '👤', '👥', '🫂', '👣'] },
 ];
 
 const ROOM_ICONS = [
   '🍳', '🛁', '🛋️', '🛏️', '👕', '🏠', '🧹', '🪴',
   '🚗', '🏡', '📚', '🎮', '🧸', '🪑', '🍽️', '🏢',
 ];
+
+// LocalStorage key for recent emojis
+const RECENT_EMOJIS_KEY = 'tidyhouse_recent_emojis';
+const MAX_RECENT_EMOJIS = 24;
+
+function getRecentEmojis(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const stored = localStorage.getItem(RECENT_EMOJIS_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch {
+    return [];
+  }
+}
+
+function addRecentEmoji(emoji: string): string[] {
+  const recent = getRecentEmojis().filter(e => e !== emoji);
+  const updated = [emoji, ...recent].slice(0, MAX_RECENT_EMOJIS);
+  try {
+    localStorage.setItem(RECENT_EMOJIS_KEY, JSON.stringify(updated));
+  } catch { /* ignore */ }
+  return updated;
+}
 
 export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, chores: initialChores }: {
   currentUser: User | null;
@@ -53,6 +80,87 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
 
   // Emoji picker state
   const [showEmojiPicker, setShowEmojiPicker] = useState<number | null>(null);
+  const [emojiSearch, setEmojiSearch] = useState('');
+  const [recentEmojis, setRecentEmojis] = useState<string[]>([]);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
+
+  // Load recent emojis on mount
+  useEffect(() => {
+    setRecentEmojis(getRecentEmojis());
+  }, []);
+
+  // Filter emojis by search term
+  const filteredCategories = useMemo(() => {
+    if (!emojiSearch.trim()) return EMOJI_CATEGORIES;
+    const search = emojiSearch.toLowerCase().trim();
+    return EMOJI_CATEGORIES.map(cat => ({
+      ...cat,
+      emojis: cat.emojis.filter(emoji => {
+        // Match by category label or just show all that contain the search
+        const catLabel = cat.label.toLowerCase();
+        return catLabel.includes(search);
+      }),
+    })).filter(cat => cat.emojis.length > 0);
+  }, [emojiSearch]);
+
+  // If search is active, show all matching emojis from all categories
+  const searchResults = useMemo(() => {
+    if (!emojiSearch.trim()) return null;
+    const search = emojiSearch.toLowerCase().trim();
+    const results: string[] = [];
+    // Search by category name
+    for (const cat of EMOJI_CATEGORIES) {
+      if (cat.label.toLowerCase().includes(search)) {
+        results.push(...cat.emojis);
+      }
+    }
+    // Also search common emoji keywords
+    const keywordMap: Record<string, string[]> = {
+      'happy': ['😀', '😃', '😄', '😁', '😊', '🥳', '😎', '🤩'],
+      'sad': ['😢', '😭', '😔', '😞', '🥺', '😿'],
+      'love': ['❤️', '💕', '💖', '😍', '🥰', '💘', '💝', '💗'],
+      'cool': ['😎', '🆒', '🧊', '❄️', '🥶'],
+      'fire': ['🔥', '❤️‍🔥', '🌶️', '♨️'],
+      'star': ['⭐', '🌟', '✨', '💫', '🌠', '⭐'],
+      'sun': ['☀️', '🌞', '🌅', '🌄', '🌤️'],
+      'moon': ['🌙', '🌛', '🌜', '🌝', '🌚'],
+      'cat': ['🐱', '🐈', '🐈‍⬛', '😺', '😸', '😹', '😻', '😼', '😽', '🙀', '😿', '😾'],
+      'dog': ['🐶', '🐕', '🐕‍🦺', '🐩', '🦮'],
+      'tree': ['🌲', '🌳', '🌴', '🎄', '🪴'],
+      'flower': ['🌸', '🌺', '🌻', '🌹', '🌷', '💐', '🪻', '🌼'],
+      'music': ['🎵', '🎶', '🎼', '🎹', '🎸', '🎷', '🎺', '🥁', '🎻'],
+      'sport': ['⚽', '🏀', '🏈', '⚾', '🎾', '🏐', '🏉', '🎱'],
+      'food': ['🍕', '🍔', '🍟', '🌮', '🍣', '🍜', '🍩', '🎂'],
+      'drink': ['☕', '🍵', '🧋', '🍺', '🍷', '🧃', '🥤'],
+      'animal': ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🐨', '🐯', '🦁'],
+      'fruit': ['🍎', '🍊', '🍋', '🍌', '🍇', '🍓', '🍑', '🍒', '🥝', '🍍'],
+      'work': ['💼', '📊', '📈', '💻', '🖥️', '📱', '📧', '✉️'],
+      'home': ['🏠', '🏡', '🛋️', '🛏️', '🚿', '🛁', '🧹', '🧺'],
+      'party': ['🎉', '🎊', '🎈', '🎁', '🥳', '🎂', '🍾', '🥂'],
+      'money': ['💰', '💵', '💴', '💶', '💷', '💳', '🪙', '💸'],
+      'weather': ['☀️', '🌧️', '⛈️', '🌈', '❄️', '☁️', '🌪️', '🌊'],
+      'time': ['⏰', '⏱️', '⏲️', '🕐', '🕑', '🕒', '📅', '📆'],
+      'smile': ['😀', '😃', '😄', '😁', '😊', '🙂', '😉', '😌'],
+      'laugh': ['😂', '🤣', '😆', '😅'],
+      'angry': ['😠', '😡', '🤬', '👿'],
+      'cry': ['😢', '😭', '😿'],
+      'think': ['🤔', '💭', '🧐', '🤨'],
+      'robot': ['🤖', '🦾', '🦿'],
+      'ghost': ['👻', '💀', '☠️'],
+      'alien': ['👽', '👾', '🛸'],
+      'heart': ['❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💖'],
+      'hand': ['👋', '✋', '🖐️', '👌', '✌️', '🤞', '🤘', '👍', '👎', '✊', '👊', '👏', '🙌'],
+      'face': ['😀', '😃', '😄', '😁', '😊', '😎', '🤓', '😇'],
+    };
+    for (const [keyword, emojis] of Object.entries(keywordMap)) {
+      if (keyword.includes(search) || search.includes(keyword)) {
+        for (const e of emojis) {
+          if (!results.includes(e)) results.push(e);
+        }
+      }
+    }
+    return results.length > 0 ? results : null;
+  }, [emojiSearch]);
 
   // Room editing
   const [editingRoom, setEditingRoom] = useState<number | null>(null);
@@ -77,8 +185,12 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
   const [expandedRooms, setExpandedRooms] = useState<Set<number>>(new Set());
 
   const handleEmojiSelect = async (userId: number, emoji: string) => {
+    const updated = addRecentEmoji(emoji);
+    setRecentEmojis(updated);
     await updateUserEmoji(userId, emoji);
     setShowEmojiPicker(null);
+    setEmojiSearch('');
+    setActiveCategory(null);
     router.refresh();
   };
 
@@ -220,23 +332,138 @@ export function SettingsClient({ currentUser, allUsers, rooms: initialRooms, cho
             </div>
           ))}
           {showEmojiPicker !== null && (
-            <div className="bg-warm-50 dark:bg-warm-900 rounded-xl border border-warm-200 dark:border-warm-700 p-3 max-h-[320px] overflow-y-auto space-y-3">
-              {EMOJI_CATEGORIES.map(cat => (
-                <div key={cat.label}>
-                  <h4 className="text-xs font-semibold text-warm-400 mb-1.5">{cat.label}</h4>
-                  <div className="grid grid-cols-8 gap-1">
-                    {cat.emojis.map(emoji => (
-                      <button
-                        key={emoji}
-                        onClick={() => handleEmojiSelect(showEmojiPicker!, emoji)}
-                        className="text-2xl p-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center"
-                      >
-                        {emoji}
-                      </button>
-                    ))}
-                  </div>
+            <div className="bg-warm-50 dark:bg-warm-900 rounded-xl border border-warm-200 dark:border-warm-700 overflow-hidden">
+              {/* Search input */}
+              <div className="p-3 border-b border-warm-200 dark:border-warm-700 sticky top-0 bg-warm-50 dark:bg-warm-900 z-10">
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={emojiSearch}
+                    onChange={(e) => setEmojiSearch(e.target.value)}
+                    placeholder="Search emojis... (e.g., cat, happy, star)"
+                    className="w-full pl-9 pr-3 py-2.5 text-sm bg-white dark:bg-warm-800 border border-warm-200 dark:border-warm-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sage-400"
+                    autoFocus
+                  />
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-warm-400">🔍</span>
+                  {emojiSearch && (
+                    <button
+                      onClick={() => setEmojiSearch('')}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-warm-400 hover:text-warm-600 dark:hover:text-warm-200"
+                    >
+                      ✕
+                    </button>
+                  )}
                 </div>
-              ))}
+              </div>
+
+              {/* Category tabs (horizontal scroll) */}
+              {!emojiSearch && (
+                <div className="px-3 py-2 border-b border-warm-200 dark:border-warm-700 overflow-x-auto flex gap-1.5 scrollbar-hide">
+                  {recentEmojis.length > 0 && (
+                    <button
+                      onClick={() => setActiveCategory(activeCategory === 'recent' ? null : 'recent')}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                        activeCategory === 'recent'
+                          ? 'bg-sage-100 dark:bg-sage-900/40 text-sage-700 dark:text-sage-300'
+                          : 'bg-warm-100 dark:bg-warm-800 text-warm-500 dark:text-warm-400 hover:bg-warm-200 dark:hover:bg-warm-700'
+                      }`}
+                    >
+                      🕐 Recent
+                    </button>
+                  )}
+                  {EMOJI_CATEGORIES.map(cat => (
+                    <button
+                      key={cat.label}
+                      onClick={() => setActiveCategory(activeCategory === cat.label ? null : cat.label)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
+                        activeCategory === cat.label
+                          ? 'bg-sage-100 dark:bg-sage-900/40 text-sage-700 dark:text-sage-300'
+                          : 'bg-warm-100 dark:bg-warm-800 text-warm-500 dark:text-warm-400 hover:bg-warm-200 dark:hover:bg-warm-700'
+                      }`}
+                    >
+                      {cat.label.split(' ')[0]}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Emoji grid */}
+              <div className="p-3 max-h-[280px] overflow-y-auto space-y-3">
+                {/* Search results */}
+                {searchResults && (
+                  <div>
+                    <h4 className="text-xs font-semibold text-warm-400 mb-1.5">🔍 Search results ({searchResults.length})</h4>
+                    <div className="grid grid-cols-8 sm:grid-cols-10 gap-1">
+                      {searchResults.slice(0, 80).map((emoji, idx) => (
+                        <button
+                          key={`${emoji}-${idx}`}
+                          onClick={() => handleEmojiSelect(showEmojiPicker!, emoji)}
+                          className="text-2xl p-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center active:scale-90"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                    {searchResults.length === 0 && (
+                      <p className="text-sm text-warm-400 text-center py-4">No emojis found. Try another search term.</p>
+                    )}
+                  </div>
+                )}
+
+                {/* Categories (when not searching) */}
+                {!emojiSearch && (
+                  <>
+                    {/* Recent emojis */}
+                    {recentEmojis.length > 0 && (!activeCategory || activeCategory === 'recent') && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-warm-400 mb-1.5">🕐 Recently Used</h4>
+                        <div className="grid grid-cols-8 sm:grid-cols-10 gap-1">
+                          {recentEmojis.map((emoji, idx) => (
+                            <button
+                              key={`recent-${emoji}-${idx}`}
+                              onClick={() => handleEmojiSelect(showEmojiPicker!, emoji)}
+                              className="text-2xl p-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center active:scale-90"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Category sections */}
+                    {EMOJI_CATEGORIES.filter(cat => !activeCategory || activeCategory === cat.label).map(cat => (
+                      <div key={cat.label}>
+                        <h4 className="text-xs font-semibold text-warm-400 mb-1.5">{cat.label}</h4>
+                        <div className="grid grid-cols-8 sm:grid-cols-10 gap-1">
+                          {cat.emojis.map((emoji, idx) => (
+                            <button
+                              key={`${cat.label}-${emoji}-${idx}`}
+                              onClick={() => handleEmojiSelect(showEmojiPicker!, emoji)}
+                              className="text-2xl p-1.5 rounded-lg hover:bg-warm-200 dark:hover:bg-warm-700 transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center active:scale-90"
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              {/* Footer with close button */}
+              <div className="p-3 border-t border-warm-200 dark:border-warm-700 flex justify-between items-center">
+                <span className="text-xs text-warm-400">
+                  {EMOJI_CATEGORIES.reduce((sum, cat) => sum + cat.emojis.length, 0)}+ emojis
+                </span>
+                <button
+                  onClick={() => { setShowEmojiPicker(null); setEmojiSearch(''); setActiveCategory(null); }}
+                  className="px-4 py-1.5 text-sm font-medium text-warm-500 hover:text-warm-700 dark:hover:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-800 rounded-lg transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -560,46 +787,46 @@ function ChoreForm({ name, freq, effort, pinnedDays, onNameChange, onFreqChange,
   };
 
   return (
-    <div className="px-6 py-3 space-y-2 bg-warm-50 dark:bg-warm-900">
+    <div className="px-6 py-4 space-y-3 bg-warm-50 dark:bg-warm-900">
       <input
         value={name}
         onChange={e => onNameChange(e.target.value)}
         placeholder="Chore name"
-        className="w-full px-3 py-1.5 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
+        className="w-full px-3 py-2.5 rounded-xl border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
         onKeyDown={e => { if (e.key === 'Enter') onSave(); }}
         autoFocus
       />
       <div className="flex gap-3 items-center flex-wrap">
-        <label className="text-xs text-warm-500">Every</label>
+        <label className="text-sm text-warm-500">Every</label>
         <input
           type="number"
           min={1}
           max={365}
           value={freq}
           onChange={e => onFreqChange(parseInt(e.target.value) || 1)}
-          className="w-16 px-2 py-1 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm text-center focus:outline-none focus:ring-2 focus:ring-sage-400"
+          className="w-20 px-3 py-2 rounded-xl border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm text-center focus:outline-none focus:ring-2 focus:ring-sage-400"
         />
-        <label className="text-xs text-warm-500">days</label>
+        <label className="text-sm text-warm-500">days</label>
         <select
           value={effort}
           onChange={e => onEffortChange(e.target.value as any)}
-          className="px-2 py-1 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
+          className="px-3 py-2 rounded-xl border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400"
         >
-          <option value="quick">Quick</option>
-          <option value="medium">Medium</option>
-          <option value="intensive">Intensive</option>
+          <option value="quick">⚡ Quick</option>
+          <option value="medium">🔧 Medium</option>
+          <option value="intensive">💪 Intensive</option>
         </select>
       </div>
       {/* Day pinning */}
       <div>
-        <label className="text-xs text-warm-500 block mb-1">Pin to days (optional)</label>
-        <div className="flex gap-1">
+        <label className="text-sm text-warm-500 block mb-2">Pin to days (optional)</label>
+        <div className="flex gap-1.5">
           {DAY_LABELS.map((label, i) => (
             <button
               key={i}
               type="button"
               onClick={() => toggleDay(i)}
-              className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${
+              className={`flex-1 min-w-[36px] h-10 rounded-xl text-xs font-medium transition-colors ${
                 selectedDays.has(i)
                   ? 'bg-sage-500 text-white'
                   : 'bg-warm-200 dark:bg-warm-700 text-warm-500 dark:text-warm-400 hover:bg-warm-300 dark:hover:bg-warm-600'
@@ -610,9 +837,13 @@ function ChoreForm({ name, freq, effort, pinnedDays, onNameChange, onFreqChange,
           ))}
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <button onClick={onSave} className="inline-flex items-center justify-center min-h-[32px] px-3 py-1.5 bg-sage-600 text-white rounded-lg text-xs font-medium hover:bg-sage-700">Save</button>
-        <button onClick={onCancel} className="inline-flex items-center justify-center min-h-[32px] px-3 py-1.5 text-warm-500 text-xs hover:bg-warm-100 dark:hover:bg-warm-700 rounded-lg">Cancel</button>
+      <div className="flex items-center gap-2 pt-1">
+        <button onClick={onCancel} className="flex-1 inline-flex items-center justify-center min-h-[44px] px-4 py-2.5 text-warm-600 dark:text-warm-300 text-sm font-medium hover:bg-warm-100 dark:hover:bg-warm-700 rounded-xl transition-colors">
+          Cancel
+        </button>
+        <button onClick={onSave} className="flex-1 inline-flex items-center justify-center min-h-[44px] px-4 py-2.5 bg-sage-600 text-white rounded-xl text-sm font-medium hover:bg-sage-700 transition-colors">
+          Save
+        </button>
       </div>
     </div>
   );

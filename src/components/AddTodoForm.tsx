@@ -37,25 +37,25 @@ export function AddTodoForm({ users, projects, tags = [] }: { users: User[]; pro
   }
 
   return (
-    <form action={handleSubmit} className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-lg border border-warm-200 dark:border-warm-700 space-y-3 animate-fade-in">
+    <form action={handleSubmit} className="bg-white dark:bg-warm-800 rounded-2xl p-5 shadow-lg border border-warm-200 dark:border-warm-700 space-y-4 animate-fade-in">
       <input name="title" placeholder="What needs to be done?" required autoFocus
-        className="w-full text-lg font-medium bg-transparent outline-none placeholder-warm-400 text-warm-800 dark:text-warm-100" />
+        className="w-full text-lg font-medium bg-transparent outline-none placeholder-warm-400 text-warm-800 dark:text-warm-100 py-1" />
       <textarea name="notes" placeholder="Notes (optional)" rows={2}
-        className="w-full text-sm bg-transparent outline-none placeholder-warm-400 text-warm-600 dark:text-warm-300 resize-none" />
-      <div className="flex flex-wrap gap-3">
-        <select name="priority" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none">
+        className="w-full text-sm bg-transparent outline-none placeholder-warm-400 text-warm-600 dark:text-warm-300 resize-none py-1" />
+      <div className="flex flex-wrap gap-2">
+        <select name="priority" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2.5 outline-none min-h-[42px] focus:ring-2 focus:ring-sage-400">
           <option value="">No priority</option>
           <option value="low">🔵 Low</option>
           <option value="medium">🟡 Medium</option>
           <option value="high">🔴 High</option>
         </select>
-        <input name="dueDate" type="date" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none" />
-        <select name="assigneeId" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none">
+        <input name="dueDate" type="date" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2.5 outline-none min-h-[42px] focus:ring-2 focus:ring-sage-400" />
+        <select name="assigneeId" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2.5 outline-none min-h-[42px] focus:ring-2 focus:ring-sage-400">
           <option value="">Anyone</option>
           {users.map(u => <option key={u.id} value={u.id}>{u.avatarEmoji} {u.name}</option>)}
         </select>
         {projects.length > 0 && (
-          <select name="projectId" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none">
+          <select name="projectId" className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2.5 outline-none min-h-[42px] focus:ring-2 focus:ring-sage-400">
             <option value="">No project</option>
             {projects.map(p => <option key={p.id} value={p.id}>{p.title}</option>)}
           </select>
@@ -75,11 +75,15 @@ export function AddTodoForm({ users, projects, tags = [] }: { users: User[]; pro
           ))}
         </div>
       )}
-      <div className="flex items-center gap-2 justify-end">
+      <div className="flex items-center gap-3 justify-end pt-2">
         <button type="button" onClick={() => { setOpen(false); setSelectedTagIds([]); }}
-          className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 text-sm rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors">Cancel</button>
+          className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 text-sm rounded-xl text-warm-600 dark:text-warm-300 hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors font-medium">
+          Cancel
+        </button>
         <button type="submit"
-          className="inline-flex items-center justify-center min-h-[40px] px-4 py-2 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl transition-colors font-medium">Add</button>
+          className="inline-flex items-center justify-center min-h-[44px] px-5 py-2.5 text-sm bg-sage-500 hover:bg-sage-600 text-white rounded-xl transition-colors font-medium">
+          Add To-Do
+        </button>
       </div>
     </form>
   );

@@ -83,7 +83,7 @@ export function TodoSortFilter({ activeTodos, completedTodos, users, projects, a
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value as SortBy)}
-          className="text-xs bg-warm-100 dark:bg-warm-700 rounded-lg px-2.5 py-1.5 outline-none"
+          className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none min-h-[38px] focus:ring-2 focus:ring-sage-400"
         >
           <option value="priority">Sort: Priority</option>
           <option value="dueDate">Sort: Due Date</option>
@@ -95,7 +95,7 @@ export function TodoSortFilter({ activeTodos, completedTodos, users, projects, a
         <select
           value={filter.assigneeId || ''}
           onChange={e => setFilter(f => ({ ...f, assigneeId: e.target.value ? parseInt(e.target.value) : undefined }))}
-          className="text-xs bg-warm-100 dark:bg-warm-700 rounded-lg px-2.5 py-1.5 outline-none"
+          className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none min-h-[38px] focus:ring-2 focus:ring-sage-400"
         >
           <option value="">All assignees</option>
           {users.map(u => <option key={u.id} value={u.id}>{u.avatarEmoji} {u.name}</option>)}
@@ -106,7 +106,7 @@ export function TodoSortFilter({ activeTodos, completedTodos, users, projects, a
           <select
             value={filter.tagId || ''}
             onChange={e => setFilter(f => ({ ...f, tagId: e.target.value ? parseInt(e.target.value) : undefined }))}
-            className="text-xs bg-warm-100 dark:bg-warm-700 rounded-lg px-2.5 py-1.5 outline-none"
+            className="text-sm bg-warm-100 dark:bg-warm-700 rounded-xl px-3 py-2 outline-none min-h-[38px] focus:ring-2 focus:ring-sage-400"
           >
             <option value="">All tags</option>
             {allTags.map(t => <option key={t.id} value={t.id}>🏷 {t.name}</option>)}
@@ -117,10 +117,10 @@ export function TodoSortFilter({ activeTodos, completedTodos, users, projects, a
         {overdue > 0 && (
           <button
             onClick={() => setFilter(f => ({ ...f, status: f.status === 'overdue' ? undefined : 'overdue' }))}
-            className={`text-xs px-2.5 py-1.5 rounded-lg font-medium transition-colors ${
+            className={`text-sm px-3 py-2 rounded-xl font-medium transition-colors min-h-[38px] ${
               filter.status === 'overdue'
                 ? 'bg-red-500 text-white'
-                : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/50'
             }`}
           >
             ⚠️ Overdue ({overdue})
@@ -130,7 +130,7 @@ export function TodoSortFilter({ activeTodos, completedTodos, users, projects, a
         {/* Tag manager toggle */}
         <button
           onClick={() => setShowTagManager(!showTagManager)}
-          className="text-xs px-2.5 py-1.5 rounded-lg bg-warm-100 dark:bg-warm-700 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors"
+          className="text-sm px-3 py-2 rounded-xl bg-warm-100 dark:bg-warm-700 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors min-h-[38px]"
         >
           🏷 Tags
         </button>
@@ -138,34 +138,35 @@ export function TodoSortFilter({ activeTodos, completedTodos, users, projects, a
 
       {/* Tag manager */}
       {showTagManager && (
-        <div className="bg-white dark:bg-warm-800 rounded-xl p-4 border border-warm-200 dark:border-warm-700 space-y-3 animate-fade-in">
-          <h3 className="text-sm font-semibold text-warm-700 dark:text-warm-200">Manage Tags</h3>
+        <div className="bg-white dark:bg-warm-800 rounded-2xl p-5 border border-warm-200 dark:border-warm-700 space-y-4 animate-fade-in">
+          <h3 className="text-base font-semibold text-warm-700 dark:text-warm-200">Manage Tags</h3>
           <div className="flex flex-wrap gap-2">
             {allTags.map(tag => (
-              <span key={tag.id} className="inline-flex items-center gap-1 text-xs px-2 py-1 rounded-full text-white" style={{ backgroundColor: tag.color }}>
+              <span key={tag.id} className="inline-flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-full text-white font-medium" style={{ backgroundColor: tag.color }}>
                 {tag.name}
-                <button onClick={() => handleDeleteTag(tag.id)} className="hover:opacity-70 ml-1">×</button>
+                <button onClick={() => handleDeleteTag(tag.id)} className="hover:opacity-70 ml-0.5 text-white/80 hover:text-white" title="Delete tag">×</button>
               </span>
             ))}
-            {allTags.length === 0 && <p className="text-xs text-warm-400">No tags yet</p>}
+            {allTags.length === 0 && <p className="text-sm text-warm-400">No tags yet. Create one below!</p>}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-3">
             <input
               value={newTagName}
               onChange={e => setNewTagName(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && handleCreateTag()}
               placeholder="New tag name"
-              className="text-xs bg-warm-50 dark:bg-warm-700 rounded-lg px-2.5 py-1.5 outline-none focus:ring-2 focus:ring-sage-400 flex-1"
+              className="text-sm bg-warm-50 dark:bg-warm-700 rounded-xl px-3 py-2.5 outline-none focus:ring-2 focus:ring-sage-400 flex-1 min-w-[150px]"
             />
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {TAG_COLORS.map(c => (
                 <button key={c} onClick={() => setNewTagColor(c)}
-                  className={`w-5 h-5 rounded-full transition-all ${newTagColor === c ? 'ring-2 ring-offset-1 ring-warm-400' : ''}`}
-                  style={{ backgroundColor: c }} />
+                  className={`w-7 h-7 rounded-full transition-all hover:scale-110 ${newTagColor === c ? 'ring-2 ring-offset-2 ring-sage-400 scale-110' : ''}`}
+                  style={{ backgroundColor: c }}
+                  title="Select color" />
               ))}
             </div>
-            <button onClick={handleCreateTag} className="text-xs px-3 py-1.5 bg-sage-500 text-white rounded-lg font-medium hover:bg-sage-600 transition-colors">
-              Add
+            <button onClick={handleCreateTag} className="text-sm px-4 py-2.5 bg-sage-500 text-white rounded-xl font-medium hover:bg-sage-600 transition-colors min-h-[42px]">
+              Add Tag
             </button>
           </div>
         </div>
