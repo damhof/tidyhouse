@@ -5,6 +5,7 @@ import { switchUser, updateUserName } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { BottomSheet, BottomSheetItem } from './BottomSheet';
 
 type UserInfo = { id: number; name: string; avatarEmoji: string };
 
@@ -14,10 +15,20 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
   const { theme, setTheme } = useTheme();
   const router = useRouter();
   const [showMenu, setShowMenu] = useState(false);
+  const [showSheet, setShowSheet] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
+  const [isDesktop, setIsDesktop] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Responsive detection
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   useEffect(() => {
     if (!showMenu) { setEditingId(null); return; }
@@ -36,6 +47,7 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
     if (editingId) return;
     await switchUser(id);
     setShowMenu(false);
+    setShowSheet(false);
     router.refresh();
   };
 
@@ -49,6 +61,14 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
       await updateUserName(editingId, editName);
       setEditingId(null);
       router.refresh();
+    }
+  };
+
+  const handleMenuClick = () => {
+    if (isDesktop) {
+      setShowMenu(!showMenu);
+    } else {
+      setShowSheet(true);
     }
   };
 
@@ -76,12 +96,14 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
 
         {/* User switcher */}
         <div className="relative" ref={menuRef}>
-          <button onClick={() => setShowMenu(!showMenu)}
+          <button onClick={handleMenuClick}
             className="min-h-[44px] flex items-center gap-2 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-800 transition-all duration-200 px-3">
             <span className="text-xl">{userEmoji || '👤'}</span>
             <span className="hidden sm:inline text-sm font-medium text-warm-600 dark:text-warm-300">{userName || 'Choose'}</span>
           </button>
-          {showMenu && (
+
+          {/* Desktop dropdown */}
+          {showMenu && isDesktop && (
             <div className="absolute right-0 top-full mt-2 bg-white dark:bg-warm-800 rounded-xl shadow-lg border border-warm-200 dark:border-warm-700 py-1.5 min-w-[200px] animate-fade-in">
               <div className="px-3 py-1.5 text-xs font-semibold text-warm-400 uppercase tracking-wider">Switch user</div>
               {allUsers.map(u => (
@@ -122,6 +144,80 @@ export function Header({ userName, userEmoji, userId, allUsers }: {
           )}
         </div>
       </div>
+
+      {/* Mobile bottom sheet for user switching */}
+      <BottomSheet isOpen={showSheet} onClose={() => { setShowSheet(false); setEditingId(null); }} title="Switch User">
+        <div className="pb-2">
+          {allUsers.map(u => (
+            <div key={u.id} className={`rounded-xl mb-1 ${userId === u.id ? 'bg-sage-50 dark:bg-sage-900/20' : ''}`}>
+              {editingId === u.id ? (
+                <div className="px-4 py-3 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{u.avatarEmoji}</span>
+                    <input
+                      value={editName}
+                      onChange={e => setEditName(e.target.value)}
+                      onKeyDown={e => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingId(null); }}
+                      placeholder="Enter name..."
+                      autoFocus
+                      className="flex-1 text-base font-medium bg-white dark:bg-warm-900 border border-warm-300 dark:border-warm-600 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-sage-400"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingId(null)} className="flex-1 text-sm py-2 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700">
+                      Cancel
+                    </button>
+                    <button onClick={saveEdit} className="flex-1 text-sm py-2 rounded-lg bg-sage-500 text-white font-medium hover:bg-sage-600">
+                      Save
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <button
+                    onClick={() => handleSwitch(u.id)}
+                    className="flex-1 flex items-center gap-3 px-4 py-3.5 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors min-h-[56px]"
+                  >
+                    <span className="text-2xl">{u.avatarEmoji}</span>
+                    <span className="font-medium text-base text-warm-800 dark:text-warm-100">{u.name}</span>
+                    {userId === u.id && (
+                      <span className="ml-auto text-sage-500 dark:text-sage-400 text-sm font-medium">Active ✓</span>
+                    )}
+                  </button>
+                  <button
+                    onClick={() => startEdit(u)}
+                    className="min-w-[48px] min-h-[48px] flex items-center justify-center text-warm-400 hover:text-warm-600 dark:hover:text-warm-200 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors mr-2"
+                    title="Edit name"
+                  >
+                    ✏️
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+          
+          {/* Theme info */}
+          <div className="border-t border-warm-200 dark:border-warm-700 mt-2 pt-3 px-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-warm-500">
+                <span>{themeIcon}</span>
+                <span>{themeLabel} theme</span>
+              </div>
+              <button 
+                onClick={() => { setTheme(theme === 'dark' ? 'light' : theme === 'light' ? 'system' : 'dark'); }}
+                className="text-xs px-3 py-1.5 rounded-lg bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors"
+              >
+                Change
+              </button>
+            </div>
+          </div>
+
+          {/* Cancel button */}
+          <div className="mt-3">
+            <BottomSheetItem icon="✕" label="Close" onClick={() => setShowSheet(false)} />
+          </div>
+        </div>
+      </BottomSheet>
     </header>
   );
 }

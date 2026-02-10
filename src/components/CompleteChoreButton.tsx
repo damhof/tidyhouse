@@ -3,6 +3,7 @@
 import { completeChore, undoChoreCompletion } from '@/lib/actions';
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { showToast } from './Toast';
+import { BottomSheet } from './BottomSheet';
 
 type Props = {
   choreId: number;
@@ -17,19 +18,6 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
   const [customDate, setCustomDate] = useState('');
   const [customTime, setCustomTime] = useState('');
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const datePickerRef = useRef<HTMLDivElement>(null);
-
-  // Close date picker on outside click
-  useEffect(() => {
-    if (!showDatePicker) return;
-    const handler = (e: MouseEvent) => {
-      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
-        setShowDatePicker(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [showDatePicker]);
 
   const doComplete = useCallback(async (completedAt?: string) => {
     if (state !== 'idle') return;
@@ -57,14 +45,18 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
     doComplete();
   }, [doComplete]);
 
-  const handleContextMenu = useCallback((e: React.MouseEvent) => {
-    e.preventDefault();
+  const openDatePicker = useCallback(() => {
     if (state !== 'idle') return;
     const now = new Date();
     setCustomDate(now.toISOString().split('T')[0]);
     setCustomTime(now.toTimeString().slice(0, 5));
     setShowDatePicker(true);
   }, [state]);
+
+  const handleContextMenu = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    openDatePicker();
+  }, [openDatePicker]);
 
   const touchStartPos = useRef<{ x: number; y: number } | null>(null);
   const longPressTriggered = useRef(false);
@@ -76,12 +68,11 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
     longPressTimer.current = setTimeout(() => {
       if (state !== 'idle') return;
       longPressTriggered.current = true;
-      const now = new Date();
-      setCustomDate(now.toISOString().split('T')[0]);
-      setCustomTime(now.toTimeString().slice(0, 5));
-      setShowDatePicker(true);
+      // Haptic feedback
+      if (navigator.vibrate) navigator.vibrate(50);
+      openDatePicker();
     }, 500);
-  }, [state]);
+  }, [state, openDatePicker]);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
     if (!touchStartPos.current) return;
@@ -110,6 +101,13 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
     setShowDatePicker(false);
     doComplete(dateStr);
   }, [customDate, customTime, doComplete]);
+
+  // Quick date buttons
+  const setQuickDate = useCallback((daysAgo: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    setCustomDate(d.toISOString().split('T')[0]);
+  }, []);
 
   const sizeClass = size === 'sm' ? 'w-9 h-9 text-base' : 'w-11 h-11 text-lg';
 
@@ -145,44 +143,69 @@ export function CompleteChoreButton({ choreId, choreName, size = 'md', onComplet
         )}
       </button>
 
-      {/* Past completion date picker */}
-      {showDatePicker && (
-        <div
-          ref={datePickerRef}
-          className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-warm-800 rounded-xl shadow-xl border border-warm-200 dark:border-warm-700 p-4 w-64 animate-fade-in"
-        >
-          <p className="text-sm font-semibold text-warm-700 dark:text-warm-200 mb-2">When did you do this?</p>
-          <div className="space-y-2">
+      {/* Past completion date picker - Bottom Sheet */}
+      <BottomSheet isOpen={showDatePicker} onClose={() => setShowDatePicker(false)} title="When did you do this?">
+        <div className="p-4 space-y-4">
+          {/* Quick date buttons */}
+          <div>
+            <p className="text-xs text-warm-400 mb-2">Quick select</p>
+            <div className="flex gap-2 flex-wrap">
+              <button onClick={() => setQuickDate(0)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${customDate === new Date().toISOString().split('T')[0] ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
+                Today
+              </button>
+              <button onClick={() => setQuickDate(1)} className={`text-xs px-3 py-2 rounded-lg font-medium transition-colors ${(() => { const d = new Date(); d.setDate(d.getDate() - 1); return customDate === d.toISOString().split('T')[0]; })() ? 'bg-sage-500 text-white' : 'bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
+                Yesterday
+              </button>
+              <button onClick={() => setQuickDate(2)} className="text-xs px-3 py-2 rounded-lg font-medium bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">
+                2 days ago
+              </button>
+              <button onClick={() => setQuickDate(7)} className="text-xs px-3 py-2 rounded-lg font-medium bg-warm-100 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-200 dark:hover:bg-warm-600 transition-colors">
+                1 week ago
+              </button>
+            </div>
+          </div>
+
+          {/* Date input */}
+          <div>
+            <label className="text-xs font-medium text-warm-500 block mb-1.5">Date</label>
             <input
               type="date"
               value={customDate}
               onChange={e => setCustomDate(e.target.value)}
               max={new Date().toISOString().split('T')[0]}
-              className="w-full text-sm bg-warm-50 dark:bg-warm-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-sage-400"
+              className="w-full text-base bg-warm-50 dark:bg-warm-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-sage-400 border border-warm-200 dark:border-warm-600"
             />
+          </div>
+
+          {/* Time input */}
+          <div>
+            <label className="text-xs font-medium text-warm-500 block mb-1.5">Time (optional)</label>
             <input
               type="time"
               value={customTime}
               onChange={e => setCustomTime(e.target.value)}
-              className="w-full text-sm bg-warm-50 dark:bg-warm-700 rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-sage-400"
+              className="w-full text-base bg-warm-50 dark:bg-warm-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-sage-400 border border-warm-200 dark:border-warm-600"
             />
           </div>
-          <div className="flex gap-2 mt-3">
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-3 pt-2">
             <button
               onClick={() => setShowDatePicker(false)}
-              className="flex-1 text-sm py-2 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors"
+              className="flex-1 inline-flex items-center justify-center min-h-[48px] text-base py-3 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors font-medium border border-warm-200 dark:border-warm-600 text-warm-600 dark:text-warm-300"
             >
               Cancel
             </button>
             <button
               onClick={handlePastComplete}
-              className="flex-1 text-sm py-2 rounded-lg bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors"
+              disabled={!customDate}
+              className="flex-1 inline-flex items-center justify-center min-h-[48px] text-base py-3 rounded-xl bg-sage-500 text-white font-medium hover:bg-sage-600 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Complete
+              ✓ Complete
             </button>
           </div>
         </div>
-      )}
+      </BottomSheet>
     </div>
   );
 }
