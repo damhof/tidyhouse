@@ -7,6 +7,7 @@ import { RoomIcon } from './RoomIcon';
 import { BottomSheet, BottomSheetItem } from './BottomSheet';
 import { useRouter } from 'next/navigation';
 import { getChoreHistory, updateChoreInline } from '@/lib/actions';
+import { useLongPress } from '@/hooks/useLongPress';
 
 type Chore = {
   id: number; name: string; effort: string; frequencyDays: number;
@@ -110,49 +111,73 @@ function ChoreEditForm({ chore, users, onSave, onCancel }: {
   };
 
   return (
-    <div className="space-y-3 p-3 bg-warm-50 dark:bg-warm-900 rounded-xl border border-warm-200 dark:border-warm-700 mt-2">
-      <input value={name} onChange={e => setName(e.target.value)} placeholder="Chore name"
-        className="w-full px-3 py-2 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400" autoFocus />
-      <div className="flex gap-3 items-center flex-wrap">
-        <label className="text-xs text-warm-500">Every</label>
-        <input type="number" min={1} max={365} value={freq} onChange={e => setFreq(parseInt(e.target.value) || 1)}
-          className="w-16 px-2 py-1.5 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm text-center focus:outline-none focus:ring-2 focus:ring-sage-400" />
-        <label className="text-xs text-warm-500">days</label>
-        <select value={effort} onChange={e => setEffort(e.target.value as 'quick' | 'medium' | 'intensive')}
-          className="px-2 py-1.5 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
-          <option value="quick">Quick</option>
-          <option value="medium">Medium</option>
-          <option value="intensive">Intensive</option>
-        </select>
+    <div className="space-y-4 p-4 bg-white dark:bg-warm-800 rounded-xl border border-warm-200 dark:border-warm-700 shadow-sm">
+      {/* Chore Name */}
+      <div>
+        <label className="text-xs font-medium text-warm-500 block mb-1.5">Chore Name</label>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Chore name"
+          className="w-full px-4 py-3 rounded-xl border border-warm-300 dark:border-warm-600 bg-warm-50 dark:bg-warm-900 text-base focus:outline-none focus:ring-2 focus:ring-sage-400" autoFocus />
       </div>
+
+      {/* Frequency & Effort */}
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-warm-500 block mb-1.5">Frequency</label>
+          <div className="flex items-center gap-2">
+            <input type="number" min={1} max={365} value={freq} onChange={e => setFreq(parseInt(e.target.value) || 1)}
+              className="flex-1 px-3 py-2.5 rounded-xl border border-warm-300 dark:border-warm-600 bg-warm-50 dark:bg-warm-900 text-base text-center focus:outline-none focus:ring-2 focus:ring-sage-400" />
+            <span className="text-sm text-warm-500">days</span>
+          </div>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-warm-500 block mb-1.5">Effort</label>
+          <select value={effort} onChange={e => setEffort(e.target.value as 'quick' | 'medium' | 'intensive')}
+            className="w-full px-3 py-2.5 rounded-xl border border-warm-300 dark:border-warm-600 bg-warm-50 dark:bg-warm-900 text-base focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <option value="quick">⚡ Quick</option>
+            <option value="medium">🔧 Medium</option>
+            <option value="intensive">💪 Intensive</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Assign to */}
       {users && users.length > 0 && (
         <div>
-          <label className="text-xs text-warm-500 block mb-1">Assign to (optional)</label>
+          <label className="text-xs font-medium text-warm-500 block mb-1.5">Assign to</label>
           <select value={assignedTo ?? ''} onChange={e => setAssignedTo(e.target.value ? parseInt(e.target.value) : null)}
-            className="w-full px-3 py-2 rounded-lg border border-warm-300 dark:border-warm-600 bg-white dark:bg-warm-800 text-sm focus:outline-none focus:ring-2 focus:ring-sage-400">
-            <option value="">Anyone</option>
+            className="w-full px-4 py-3 rounded-xl border border-warm-300 dark:border-warm-600 bg-warm-50 dark:bg-warm-900 text-base focus:outline-none focus:ring-2 focus:ring-sage-400">
+            <option value="">👥 Anyone</option>
             {users.map(u => (
               <option key={u.id} value={u.id}>{u.avatarEmoji} {u.name}</option>
             ))}
           </select>
         </div>
       )}
+
+      {/* Pin to Days */}
       <div>
-        <label className="text-xs text-warm-500 block mb-1">Pin to days (optional)</label>
-        <div className="flex gap-1">
+        <label className="text-xs font-medium text-warm-500 block mb-1.5">Pin to specific days</label>
+        <div className="flex gap-1.5 justify-between">
           {DAY_LABELS_SHORT.map((label, i) => (
             <button key={i} type="button" onClick={() => toggleDay(i)}
-              className={`w-8 h-8 rounded-lg text-xs font-medium transition-colors ${selectedDays.has(i)
-                ? 'bg-sage-500 text-white' : 'bg-warm-200 dark:bg-warm-700 text-warm-500 dark:text-warm-400 hover:bg-warm-300 dark:hover:bg-warm-600'}`}>
+              className={`flex-1 min-w-[40px] h-10 rounded-xl text-sm font-medium transition-all active:scale-95 ${selectedDays.has(i)
+                ? 'bg-sage-500 text-white shadow-sm' : 'bg-warm-100 dark:bg-warm-700 text-warm-500 dark:text-warm-400 hover:bg-warm-200 dark:hover:bg-warm-600'}`}>
               {label}
             </button>
           ))}
         </div>
+        <p className="text-xs text-warm-400 mt-1.5">Leave empty to show every day based on frequency</p>
       </div>
-      <div className="flex items-center gap-2 justify-end">
-        <button onClick={onCancel} className="inline-flex items-center justify-center min-h-[36px] px-3 py-1.5 text-warm-500 text-sm rounded-lg hover:bg-warm-200 dark:hover:bg-warm-600">Cancel</button>
+
+      {/* Actions */}
+      <div className="flex items-center gap-3 pt-2">
+        <button onClick={onCancel} className="flex-1 inline-flex items-center justify-center min-h-[48px] px-4 py-3 text-warm-600 dark:text-warm-300 text-base rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors font-medium border border-warm-200 dark:border-warm-600">
+          Cancel
+        </button>
         <button onClick={() => onSave({ name, frequencyDays: freq, effort, pinnedDays: pinnedDays || null, assignedTo })}
-          className="inline-flex items-center justify-center min-h-[36px] px-4 py-1.5 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600">Save</button>
+          className="flex-1 inline-flex items-center justify-center min-h-[48px] px-4 py-3 bg-sage-500 text-white rounded-xl text-base font-medium hover:bg-sage-600 transition-colors shadow-sm">
+          Save Changes
+        </button>
       </div>
     </div>
   );
@@ -168,12 +193,10 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
   const router = useRouter();
   const ago = chore.lastCompleted ? formatTimeAgo(chore.lastCompleted) : 'Never done';
 
-  // Swipe state
+  // Swipe state (for swipe-to-complete gesture)
   const [swipeX, setSwipeX] = useState(0);
   const [isSwiping, setIsSwiping] = useState(false);
-  const touchStartRef = useRef<{ x: number; y: number; time: number } | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const longPressTriggered = useRef(false);
+  const swipeStartRef = useRef<{ x: number; y: number } | null>(null);
   const rowRef = useRef<HTMLDivElement>(null);
 
   // Assigned user
@@ -184,66 +207,58 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
     onComplete();
   }, [onComplete]);
 
+  // Use the reliable long-press hook
+  const longPressHandlers = useLongPress({
+    onLongPress: () => {
+      if (!justCompleted) {
+        onLongPress();
+      }
+    },
+    onClick: () => {
+      if (!justCompleted && !isSwiping) {
+        onToggleExpand();
+      }
+    },
+    threshold: 500,
+    moveThreshold: 20,
+  });
+
+  // Swipe handling (separate from long-press)
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
-    // Don't start long-press if touching the complete button directly
     const target = e.target as HTMLElement;
     if (target.closest('[data-complete-btn]')) return;
-
     const touch = e.touches[0];
-    touchStartRef.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+    swipeStartRef.current = { x: touch.clientX, y: touch.clientY };
     setIsSwiping(false);
-    longPressTriggered.current = false;
-
-    // Start long-press timer (500ms)
-    longPressTimer.current = setTimeout(() => {
-      longPressTriggered.current = true;
-      // Trigger haptic feedback if available
-      if (navigator.vibrate) navigator.vibrate(15);
-      onLongPress();
-    }, 500);
-  }, [onLongPress]);
+  }, []);
 
   const handleTouchMove = useCallback((e: React.TouchEvent) => {
-    if (!touchStartRef.current || justCompleted) return;
+    if (!swipeStartRef.current || justCompleted) return;
     const touch = e.touches[0];
-    const dx = touch.clientX - touchStartRef.current.x;
-    const dy = touch.clientY - touchStartRef.current.y;
+    const dx = touch.clientX - swipeStartRef.current.x;
+    const dy = touch.clientY - swipeStartRef.current.y;
 
-    // Cancel long-press on movement > 10px (scroll detection)
-    if (Math.abs(dx) > 10 || Math.abs(dy) > 10) {
-      if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-    }
-
-    // If scrolling vertically, cancel everything
-    if (!isSwiping && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 10) {
-      touchStartRef.current = null;
+    // If scrolling vertically, cancel swipe
+    if (!isSwiping && Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > 15) {
+      swipeStartRef.current = null;
       return;
     }
     // Horizontal swipe for completion
-    if (dx > 10) {
+    if (dx > 15) {
       setIsSwiping(true);
       setSwipeX(Math.min(dx, 120));
     }
   }, [isSwiping, justCompleted]);
 
-  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
-    if (longPressTimer.current) { clearTimeout(longPressTimer.current); longPressTimer.current = null; }
-
-    // If long-press was triggered, prevent any further action
-    if (longPressTriggered.current) {
-      e.preventDefault();
-      touchStartRef.current = null;
-      return;
-    }
-
+  const handleTouchEnd = useCallback(() => {
     if (swipeX > 80 && !justCompleted) {
       setSwipeX(0);
       handleComplete();
     } else {
       setSwipeX(0);
     }
-    setIsSwiping(false);
-    touchStartRef.current = null;
+    setTimeout(() => setIsSwiping(false), 50);
+    swipeStartRef.current = null;
   }, [swipeX, justCompleted, handleComplete]);
 
   // Load history when expanded
@@ -283,23 +298,12 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
           ${justCompleted ? 'opacity-50 bg-sage-50 dark:bg-sage-900/20' : ''}
           ${isExpanded ? 'ring-2 ring-sage-300 dark:ring-sage-700' : ''}
           ${isSwiping ? '' : 'duration-300'}`}
-        style={{ transform: `translateX(${swipeX}px)` }}
+        style={{ transform: `translateX(${swipeX}px)`, touchAction: 'pan-y' }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        onTouchCancel={() => { if (longPressTimer.current) clearTimeout(longPressTimer.current); setSwipeX(0); setIsSwiping(false); touchStartRef.current = null; longPressTriggered.current = false; }}
-        onContextMenu={(e) => { e.preventDefault(); onLongPress(); }}
-        onClick={(e) => { 
-          // Prevent click if long-press was triggered or if swiping
-          if (longPressTriggered.current || isSwiping) {
-            e.preventDefault();
-            e.stopPropagation();
-            // Reset for next interaction
-            setTimeout(() => { longPressTriggered.current = false; }, 100);
-            return;
-          }
-          onToggleExpand();
-        }}
+        onTouchCancel={() => { setSwipeX(0); setIsSwiping(false); swipeStartRef.current = null; }}
+        {...longPressHandlers}
       >
         <div className="w-2.5 h-2.5 rounded-full flex-shrink-0 transition-colors duration-700"
           style={{ backgroundColor: justCompleted ? '#4CAF50' : stalenessColor(chore.level) }} />
@@ -328,7 +332,7 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
             <ChoreEditForm chore={chore} users={users} onSave={handleSaveEdit} onCancel={() => setEditing(false)} />
           ) : (
             <>
-              {/* Status info */}
+              {/* Status info - tappable cells to edit */}
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
                   <span className="text-warm-400">Status</span>
@@ -341,20 +345,20 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
                     {lastUser && <span> · {lastUser.avatarEmoji} {lastUser.name}</span>}
                   </p>
                 </div>
-                <div>
-                  <span className="text-warm-400">Frequency</span>
+                <button onClick={() => setEditing(true)} className="text-left p-1.5 -m-1.5 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors group">
+                  <span className="text-warm-400 group-hover:text-sage-500 transition-colors">Frequency ✏️</span>
                   <p className="font-medium text-warm-700 dark:text-warm-200">Every {chore.frequencyDays} days</p>
-                </div>
-                <div>
-                  <span className="text-warm-400">Effort</span>
+                </button>
+                <button onClick={() => setEditing(true)} className="text-left p-1.5 -m-1.5 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors group">
+                  <span className="text-warm-400 group-hover:text-sage-500 transition-colors">Effort ✏️</span>
                   <p className="font-medium text-warm-700 dark:text-warm-200 capitalize">{chore.effort}</p>
-                </div>
-                {chore.pinnedDays && (
-                  <div className="col-span-2">
-                    <span className="text-warm-400">Pinned days</span>
-                    <p className="font-medium text-warm-700 dark:text-warm-200">📌 {formatPinnedDays(chore.pinnedDays)}</p>
-                  </div>
-                )}
+                </button>
+                <button onClick={() => setEditing(true)} className="col-span-2 text-left p-1.5 -m-1.5 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700 transition-colors group">
+                  <span className="text-warm-400 group-hover:text-sage-500 transition-colors">Pinned days ✏️</span>
+                  <p className="font-medium text-warm-700 dark:text-warm-200">
+                    {chore.pinnedDays ? `📌 ${formatPinnedDays(chore.pinnedDays)}` : 'Not pinned'}
+                  </p>
+                </button>
               </div>
 
               {/* Recent history */}
@@ -379,17 +383,17 @@ function ChoreRow({ chore, onComplete, users, isExpanded, onToggleExpand, onLong
                 <p className="text-xs text-warm-400 italic">No completion history yet</p>
               )}
 
-              {/* Action buttons */}
+              {/* Action buttons - larger touch targets for mobile */}
               <div className="pt-1 flex items-center justify-between gap-2" onClick={e => e.stopPropagation()}>
                 <div className="flex items-center gap-2">
                   <CompleteChoreButton choreId={chore.id} choreName={chore.name} size="sm" onComplete={handleComplete} />
                   <button onClick={() => setEditing(true)}
-                    className="inline-flex items-center justify-center min-h-[32px] text-xs px-3 py-1.5 rounded-lg bg-warm-200 dark:bg-warm-700 text-warm-600 dark:text-warm-300 hover:bg-warm-300 dark:hover:bg-warm-600 transition-colors font-medium">
-                    ✏️ Edit
+                    className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-sm px-4 py-2 rounded-xl bg-sage-100 dark:bg-sage-900/30 text-sage-700 dark:text-sage-300 hover:bg-sage-200 dark:hover:bg-sage-800/50 transition-colors font-medium border border-sage-200 dark:border-sage-700">
+                    ✏️ Edit Settings
                   </button>
                 </div>
-                <button onClick={onToggleExpand} className="inline-flex items-center justify-center min-h-[32px] text-xs text-warm-400 hover:text-warm-600 transition-colors px-2 py-1 rounded-lg hover:bg-warm-100 dark:hover:bg-warm-700">
-                  Close ✕
+                <button onClick={onToggleExpand} className="inline-flex items-center justify-center min-h-[44px] min-w-[44px] text-sm text-warm-400 hover:text-warm-600 transition-colors px-3 py-2 rounded-xl hover:bg-warm-100 dark:hover:bg-warm-700">
+                  ✕
                 </button>
               </div>
             </>
